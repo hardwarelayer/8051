@@ -1,0 +1,4 @@
+"melody51.obj",
+"delay.obj" 
+TO "music" 
+RAMSIZE(256) 
