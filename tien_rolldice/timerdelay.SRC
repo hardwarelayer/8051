@@ -1,0 +1,18 @@
+NAME	TIMERDELAY
+
+?PR?_TimerDelay10MC?TIMERDELAY SEGMENT CODE 
+ 
+	PUBLIC	_TimerDelay10MC
+
+	RSEG  ?PR?_TimerDelay10MC?TIMERDELAY
+_TimerDelay10MC:
+	MOV TMOD,#0000001B // Sets Timer 0 to MODE1 (16 bit timer). Timer 1 is not used
+	MOV TH1,#0D8H // 60000-10000, 10000 is time for a NOP directive in 12MHz
+	MOV TL1,#0F0H // 
+	SETB TR1 // Starts the Timer 1
+TIMERHERE: JNB TF1,TIMERHERE // Loops here until TF0 is set (ie;until roll over)
+	CLR TR1 // Stops Timer 0
+	CLR TF1 // Clears TF0 flag
+	RET
+
+	END

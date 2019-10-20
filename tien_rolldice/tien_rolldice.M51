@@ -1,0 +1,638 @@
+BL51 BANKED LINKER/LOCATER V6.22                                                        10/20/2019  21:17:00  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V6.22, INVOKED BY:
+C:\KEIL\C51\BIN\BL51.EXE main.obj, delay.obj, timerdelay.obj TO tien_rolldice RAMSIZE (256)
+
+
+MEMORY MODEL: SMALL
+
+
+INPUT MODULES INCLUDED:
+  main.obj (MAIN)
+  delay.obj (DELAY)
+  timerdelay.obj (TIMERDELAY)
+  C:\KEIL\C51\LIB\C51S.LIB (?C_STARTUP)
+  C:\KEIL\C51\LIB\C51S.LIB (?C?IMUL)
+  C:\KEIL\C51\LIB\C51S.LIB (?C?UIDIV)
+  C:\KEIL\C51\LIB\C51S.LIB (?C?SLDIV)
+  C:\KEIL\C51\LIB\C51S.LIB (?C_INIT)
+  C:\KEIL\C51\LIB\C51S.LIB (?C?ULDIV)
+
+
+LINK MAP OF MODULE:  tien_rolldice (MAIN)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+            DATA    0008H     0003H     UNIT         _DATA_GROUP_
+                    000BH     0015H                  *** GAP ***
+            BIT     0020H.0   0000H.1   UNIT         ?BI?MAIN
+                    0020H.1   0000H.7                *** GAP ***
+            DATA    0021H     002DH     UNIT         ?DT?MAIN
+            IDATA   004EH     0001H     UNIT         ?STACK
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0003H     ABSOLUTE     
+            CODE    0003H     0007H     UNIT         ?PR?ENDNOTE?MAIN
+                    000AH     0001H                  *** GAP ***
+            CODE    000BH     0003H     ABSOLUTE     
+            CODE    000EH     000BH     UNIT         ?CO?MAIN
+                    0019H     0002H                  *** GAP ***
+            CODE    001BH     0003H     ABSOLUTE     
+            CODE    001EH     000BH     UNIT         ?PR?_DELAY10MC?DELAY
+                    0029H     0002H                  *** GAP ***
+            CODE    002BH     0003H     ABSOLUTE     
+            CODE    002EH     022CH     UNIT         ?PR?ADAMSFAMILY?MAIN
+            CODE    025AH     0183H     UNIT         ?PR?FLINTSTONES?MAIN
+            CODE    03DDH     0135H     UNIT         ?C?LIB_CODE
+            CODE    0512H     0116H     UNIT         ?PR?PINKPANTHER?MAIN
+            CODE    0628H     0112H     UNIT         ?PR?LOONEYTOONS?MAIN
+            CODE    073AH     00C2H     UNIT         ?PR?BEETHOVENPLAY?MAIN
+            CODE    07FCH     00C1H     UNIT         ?PR?SAREGAMA?MAIN
+            CODE    08BDH     009FH     UNIT         ?PR?_MELODYTEMPO?MAIN
+            CODE    095CH     008CH     UNIT         ?C_C51STARTUP
+            CODE    09E8H     005EH     UNIT         ?PR?TIMER1_ISR?MAIN
+            CODE    0A46H     0044H     UNIT         ?PR?MAIN?MAIN
+            CODE    0A8AH     0044H     UNIT         ?C?LDIV
+            CODE    0ACEH     0037H     UNIT         ?PR?TIMER0_ISR?MAIN
+BL51 BANKED LINKER/LOCATER V6.22                                                      10/20/2019  21:17:00  PAGE 2
+
+
+            CODE    0B05H     002DH     UNIT         ?PR?_MELODYPLAY?MAIN
+            CODE    0B32H     001FH     UNIT         ?PR?_DELAY_MS?MAIN
+            CODE    0B51H     0013H     UNIT         ?PR?INITTIMER0?MAIN
+            CODE    0B64H     0013H     UNIT         ?PR?INITTIMER1?MAIN
+            CODE    0B77H     0013H     UNIT         ?PR?_TIMERDELAY10MC?TIMERDELAY
+            CODE    0B8AH     0011H     UNIT         ?PR?_PLAYNOTE?MAIN
+            CODE    0B9BH     000EH     UNIT         ?C_INITSEG
+            CODE    0BA9H     0005H     UNIT         ?PR?TIMER2_ISR?MAIN
+
+
+
+OVERLAY MAP OF MODULE:   tien_rolldice (MAIN)
+
+
+SEGMENT                                  DATA_GROUP 
+  +--> CALLED SEGMENT                  START    LENGTH
+------------------------------------------------------
+?PR?TIMER1_ISR?MAIN                    -----    -----
+  +--> ?PR?ENDNOTE?MAIN
+
+*** NEW ROOT ***************************************************
+
+?C_C51STARTUP                          -----    -----
+  +--> ?PR?MAIN?MAIN
+  +--> ?C_INITSEG
+
+?PR?MAIN?MAIN                          0008H    0001H
+  +--> ?PR?INITTIMER0?MAIN
+  +--> ?PR?_DELAY_MS?MAIN
+  +--> ?CO?MAIN
+  +--> ?PR?PINKPANTHER?MAIN
+
+?PR?_DELAY_MS?MAIN                     0009H    0002H
+  +--> ?PR?_TIMERDELAY10MC?TIMERDELAY
+
+?PR?PINKPANTHER?MAIN                   -----    -----
+  +--> ?PR?_MELODYTEMPO?MAIN
+  +--> ?PR?_MELODYPLAY?MAIN
+
+?PR?_MELODYPLAY?MAIN                   0009H    0002H
+  +--> ?PR?_PLAYNOTE?MAIN
+  +--> ?PR?INITTIMER1?MAIN
+
+
+
+SYMBOL TABLE OF MODULE:  tien_rolldice (MAIN)
+
+  VALUE           TYPE          NAME
+  ----------------------------------
+
+  -------         MODULE        MAIN
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  B:00B0H.5       PUBLIC        K5
+  D:0080H         PUBLIC        P0
+  D:0090H         PUBLIC        P1
+  D:00A0H         PUBLIC        P2
+  D:00B0H         PUBLIC        P3
+BL51 BANKED LINKER/LOCATER V6.22                                                      10/20/2019  21:17:00  PAGE 3
+
+
+  C:0ACEH         PUBLIC        Timer0_ISR
+  D:0021H         PUBLIC        iTickCount
+  C:09E8H         PUBLIC        Timer1_ISR
+  C:0BA9H         PUBLIC        Timer2_ISR
+  B:00A8H.7       PUBLIC        EA
+  B:00A0H.5       PUBLIC        LED1
+  C:000EH         PUBLIC        Disp_Tab
+  D:00A8H         PUBLIC        IE
+  C:0628H         PUBLIC        LooneyToons
+  B:0020H.0       PUBLIC        flgLED
+  D:0023H         PUBLIC        iTimer1Delay
+  D:0025H         PUBLIC        eighthN_us
+  D:00B8H         PUBLIC        IP
+  D:0027H         PUBLIC        twentyFourN
+  D:0029H         PUBLIC        sixteenN_us
+  C:025AH         PUBLIC        Flintstones
+  D:00CBH         PUBLIC        RCAP2H
+  D:002BH         PUBLIC        sixN
+  C:07FCH         PUBLIC        Saregama
+  D:00CAH         PUBLIC        RCAP2L
+  C:0A46H         PUBLIC        main
+  C:0B0DH         PUBLIC        _Melodyplay
+  D:002DH         PUBLIC        qtrN
+  C:0B8AH         PUBLIC        _PlayNote
+  C:0003H         PUBLIC        EndNote
+  D:002FH         PUBLIC        sixtyFourN
+  D:0031H         PUBLIC        twelveN_us
+  D:0033H         PUBLIC        thirtyTwoN
+  D:0098H         PUBLIC        SCON
+  D:0035H         PUBLIC        halfN_us
+  D:0089H         PUBLIC        TMOD
+  D:0088H         PUBLIC        TCON
+  D:0037H         PUBLIC        wholeN_us
+  C:073AH         PUBLIC        BeethovenPlay
+  B:00A8H.1       PUBLIC        ET0
+  B:00A8H.3       PUBLIC        ET1
+  C:0B51H         PUBLIC        InitTimer0
+  D:0039H         PUBLIC        eighthN
+  B:00A8H.5       PUBLIC        ET2
+  B:0088H.7       PUBLIC        TF1
+  C:0B64H         PUBLIC        InitTimer1
+  B:00C8H.7       PUBLIC        TF2
+  D:008CH         PUBLIC        TH0
+  D:008DH         PUBLIC        TH1
+  D:00CDH         PUBLIC        TH2
+  C:002EH         PUBLIC        AdamsFamily
+  D:008AH         PUBLIC        TL0
+  D:008BH         PUBLIC        TL1
+  D:00CCH         PUBLIC        TL2
+  C:0B32H         PUBLIC        _delay_ms
+  D:003BH         PUBLIC        sixteenN
+  B:0088H.4       PUBLIC        TR0
+  B:0088H.6       PUBLIC        TR1
+  B:00C8H.2       PUBLIC        TR2
+  B:00A0H.1       PUBLIC        SPK_PIN_PORT
+  D:003DH         PUBLIC        twentyFourN_us
+  D:00C8H         PUBLIC        T2CON
+BL51 BANKED LINKER/LOCATER V6.22                                                      10/20/2019  21:17:00  PAGE 4
+
+
+  D:003FH         PUBLIC        twelveN
+  D:0041H         PUBLIC        segmentLEDRoll
+  C:0512H         PUBLIC        PinkPanther
+  D:0042H         PUBLIC        halfN
+  D:0044H         PUBLIC        sixN_us
+  D:0046H         PUBLIC        wholeN
+  D:0048H         PUBLIC        qtrN_us
+  C:08BDH         PUBLIC        _MelodyTempo
+  D:00D0H         PUBLIC        PSW
+  D:004AH         PUBLIC        sixtyFourN_us
+  D:004CH         PUBLIC        thirtyTwoN_us
+  -------         PROC          TIMER2_ISR
+  C:0BA9H         LINE#         83
+  C:0BA9H         LINE#         84
+  C:0BABH         LINE#         85
+  C:0BADH         LINE#         86
+  -------         ENDPROC       TIMER2_ISR
+  -------         PROC          TIMER1_ISR
+  C:09E8H         LINE#         92
+  C:0A05H         LINE#         93
+  C:0A10H         LINE#         94
+  C:0A10H         LINE#         95
+  C:0A18H         LINE#         97
+  C:0A1BH         LINE#         98
+  C:0A1EH         LINE#         99
+  C:0A20H         LINE#         100
+  C:0A22H         LINE#         102
+  C:0A22H         LINE#         104
+  C:0A24H         LINE#         105
+  C:0A26H         LINE#         106
+  C:0A28H         LINE#         107
+  C:0A2BH         LINE#         108
+  C:0A2BH         LINE#         109
+  -------         ENDPROC       TIMER1_ISR
+  -------         PROC          TIMER0_ISR
+  C:0ACEH         LINE#         116
+  C:0AD2H         LINE#         120
+  C:0AD4H         LINE#         122
+  C:0AE7H         LINE#         123
+  C:0AEDH         LINE#         124
+  C:0AEFH         LINE#         126
+  C:0AF5H         LINE#         127
+  C:0AF8H         LINE#         128
+  C:0AFAH         LINE#         129
+  C:0AFAH         LINE#         130
+  C:0B00H         LINE#         131
+  C:0B00H         LINE#         132
+  C:0B00H         LINE#         135
+  -------         ENDPROC       TIMER0_ISR
+  -------         PROC          _MELODYTEMPO
+  D:0006H         SYMBOL        Tempo
+  C:08BDH         LINE#         137
+  C:08BDH         LINE#         138
+  C:08D5H         LINE#         139
+  C:08E4H         LINE#         140
+  C:08EFH         LINE#         141
+  C:08FAH         LINE#         142
+BL51 BANKED LINKER/LOCATER V6.22                                                      10/20/2019  21:17:00  PAGE 5
+
+
+  C:090BH         LINE#         143
+  C:091CH         LINE#         144
+  C:092EH         LINE#         145
+  C:093DH         LINE#         146
+  C:094CH         LINE#         147
+  C:095BH         LINE#         148
+  -------         ENDPROC       _MELODYTEMPO
+  -------         PROC          _PLAYNOTE
+  D:0007H         SYMBOL        PitchH
+  D:0005H         SYMBOL        PitchL
+  C:0B8AH         LINE#         150
+  C:0B8AH         LINE#         151
+  C:0B8CH         LINE#         152
+  C:0B8EH         LINE#         153
+  C:0B90H         LINE#         154
+  C:0B92H         LINE#         156
+  C:0B94H         LINE#         157
+  C:0B96H         LINE#         158
+  C:0B98H         LINE#         159
+  C:0B9AH         LINE#         160
+  -------         ENDPROC       _PLAYNOTE
+  -------         PROC          ENDNOTE
+  C:0003H         LINE#         162
+  C:0003H         LINE#         164
+  C:0005H         LINE#         165
+  C:0007H         LINE#         166
+  C:0009H         LINE#         167
+  -------         ENDPROC       ENDNOTE
+  -------         PROC          _DELAY_MS
+  D:0009H         SYMBOL        ms
+  C:0B32H         LINE#         169
+  C:0B36H         LINE#         170
+  C:0B41H         LINE#         171
+  C:0B50H         LINE#         172
+  -------         ENDPROC       _DELAY_MS
+  C:0B05H         SYMBOL        L?0041
+  C:0B07H         SYMBOL        L?0042
+  -------         PROC          L?0040
+  -------         ENDPROC       L?0040
+  C:0B05H         SYMBOL        L?0041
+  C:0B07H         SYMBOL        L?0042
+  -------         PROC          _MELODYPLAY
+  D:0002H         SYMBOL        Pitch
+  D:0009H         SYMBOL        interval
+  C:0B0DH         LINE#         174
+  C:0B15H         LINE#         175
+  C:0B19H         LINE#         176
+  C:0B20H         LINE#         178
+  C:0B2FH         LINE#         179
+  -------         ENDPROC       _MELODYPLAY
+  -------         PROC          LOONEYTOONS
+  C:0628H         LINE#         184
+  C:0628H         LINE#         185
+  C:062FH         LINE#         186
+  C:063AH         LINE#         187
+  C:063FH         LINE#         188
+  C:064AH         LINE#         189
+BL51 BANKED LINKER/LOCATER V6.22                                                      10/20/2019  21:17:00  PAGE 6
+
+
+  C:0655H         LINE#         190
+  C:0658H         LINE#         191
+  C:0663H         LINE#         192
+  C:066EH         LINE#         193
+  C:0671H         LINE#         194
+  C:067CH         LINE#         195
+  C:0687H         LINE#         196
+  C:0692H         LINE#         197
+  C:069DH         LINE#         198
+  C:06A8H         LINE#         199
+  C:06B3H         LINE#         200
+  C:06BEH         LINE#         201
+  C:06C9H         LINE#         202
+  C:06CCH         LINE#         203
+  C:06D7H         LINE#         204
+  C:06DAH         LINE#         205
+  C:06E5H         LINE#         206
+  C:06E8H         LINE#         207
+  C:06F3H         LINE#         208
+  C:06F6H         LINE#         209
+  C:0701H         LINE#         210
+  C:0704H         LINE#         211
+  C:070FH         LINE#         212
+  C:071AH         LINE#         213
+  C:0725H         LINE#         214
+  C:0730H         LINE#         215
+  -------         ENDPROC       LOONEYTOONS
+  -------         PROC          FLINTSTONES
+  C:025AH         LINE#         218
+  C:025AH         LINE#         219
+  C:0261H         LINE#         220
+  C:026CH         LINE#         221
+  C:0277H         LINE#         222
+  C:0281H         LINE#         223
+  C:028CH         LINE#         224
+  C:0297H         LINE#         225
+  C:02A2H         LINE#         226
+  C:02ADH         LINE#         227
+  C:02B7H         LINE#         228
+  C:02C2H         LINE#         229
+  C:02CDH         LINE#         230
+  C:02D8H         LINE#         231
+  C:02E3H         LINE#         232
+  C:02EEH         LINE#         233
+  C:02F9H         LINE#         234
+  C:0304H         LINE#         235
+  C:030FH         LINE#         236
+  C:031AH         LINE#         237
+  C:0324H         LINE#         238
+  C:032FH         LINE#         239
+  C:033AH         LINE#         240
+  C:0344H         LINE#         241
+  C:034FH         LINE#         242
+  C:035AH         LINE#         243
+  C:0365H         LINE#         244
+  C:0370H         LINE#         245
+  C:037AH         LINE#         246
+BL51 BANKED LINKER/LOCATER V6.22                                                      10/20/2019  21:17:00  PAGE 7
+
+
+  C:0385H         LINE#         247
+  C:0390H         LINE#         248
+  C:039BH         LINE#         249
+  C:03A6H         LINE#         250
+  C:03B1H         LINE#         251
+  C:03BCH         LINE#         252
+  C:03C7H         LINE#         253
+  C:03D2H         LINE#         254
+  -------         ENDPROC       FLINTSTONES
+  -------         PROC          ADAMSFAMILY
+  C:002EH         LINE#         257
+  C:002EH         LINE#         258
+  C:0035H         LINE#         259
+  C:003FH         LINE#         260
+  C:004AH         LINE#         261
+  C:0055H         LINE#         262
+  C:0060H         LINE#         263
+  C:006BH         LINE#         264
+  C:0076H         LINE#         265
+  C:0081H         LINE#         266
+  C:008CH         LINE#         267
+  C:0097H         LINE#         268
+  C:00A2H         LINE#         269
+  C:00ADH         LINE#         270
+  C:00B8H         LINE#         271
+  C:00C3H         LINE#         272
+  C:00CEH         LINE#         273
+  C:00D9H         LINE#         274
+  C:00E4H         LINE#         275
+  C:00EFH         LINE#         276
+  C:00FAH         LINE#         277
+  C:0105H         LINE#         278
+  C:0110H         LINE#         279
+  C:011BH         LINE#         280
+  C:0126H         LINE#         281
+  C:0131H         LINE#         282
+  C:013CH         LINE#         283
+  C:0147H         LINE#         284
+  C:0152H         LINE#         285
+  C:015DH         LINE#         286
+  C:0168H         LINE#         287
+  C:0173H         LINE#         288
+  C:017EH         LINE#         289
+  C:0189H         LINE#         290
+  C:0194H         LINE#         291
+  C:019FH         LINE#         292
+  C:01AAH         LINE#         293
+  C:01B5H         LINE#         294
+  C:01C0H         LINE#         295
+  C:01CBH         LINE#         296
+  C:01D6H         LINE#         297
+  C:01E1H         LINE#         298
+  C:01ECH         LINE#         299
+  C:01F7H         LINE#         300
+  C:0202H         LINE#         301
+  C:020DH         LINE#         302
+  C:0218H         LINE#         303
+BL51 BANKED LINKER/LOCATER V6.22                                                      10/20/2019  21:17:00  PAGE 8
+
+
+  C:0223H         LINE#         304
+  C:022EH         LINE#         305
+  C:0239H         LINE#         306
+  C:0244H         LINE#         307
+  C:024FH         LINE#         308
+  -------         ENDPROC       ADAMSFAMILY
+  -------         PROC          PINKPANTHER
+  C:0512H         LINE#         311
+  C:0512H         LINE#         312
+  C:0519H         LINE#         313
+  C:0524H         LINE#         314
+  C:052FH         LINE#         315
+  C:0539H         LINE#         316
+  C:0544H         LINE#         317
+  C:054FH         LINE#         318
+  C:0559H         LINE#         319
+  C:0564H         LINE#         320
+  C:056FH         LINE#         321
+  C:0579H         LINE#         322
+  C:0584H         LINE#         323
+  C:058FH         LINE#         324
+  C:0599H         LINE#         325
+  C:059CH         LINE#         326
+  C:05A7H         LINE#         327
+  C:05B1H         LINE#         328
+  C:05BCH         LINE#         329
+  C:05C7H         LINE#         330
+  C:05D1H         LINE#         331
+  C:05DCH         LINE#         332
+  C:05E7H         LINE#         333
+  C:05F1H         LINE#         334
+  C:05FCH         LINE#         335
+  C:0607H         LINE#         336
+  C:0612H         LINE#         337
+  C:061DH         LINE#         338
+  -------         ENDPROC       PINKPANTHER
+  -------         PROC          BEETHOVENPLAY
+  C:073AH         LINE#         341
+  C:073AH         LINE#         342
+  C:0741H         LINE#         343
+  C:074CH         LINE#         344
+  C:0757H         LINE#         345
+  C:0762H         LINE#         346
+  C:076DH         LINE#         347
+  C:0778H         LINE#         348
+  C:0783H         LINE#         349
+  C:078EH         LINE#         350
+  C:0799H         LINE#         351
+  C:07A4H         LINE#         352
+  C:07AFH         LINE#         353
+  C:07BAH         LINE#         354
+  C:07C5H         LINE#         355
+  C:07D0H         LINE#         357
+  C:07DBH         LINE#         358
+  C:07E6H         LINE#         359
+  C:07F1H         LINE#         360
+  -------         ENDPROC       BEETHOVENPLAY
+BL51 BANKED LINKER/LOCATER V6.22                                                      10/20/2019  21:17:00  PAGE 9
+
+
+  -------         PROC          SAREGAMA
+  C:07FCH         LINE#         363
+  C:07FCH         LINE#         364
+  C:0803H         LINE#         365
+  C:080EH         LINE#         366
+  C:0819H         LINE#         367
+  C:0824H         LINE#         368
+  C:082FH         LINE#         369
+  C:083AH         LINE#         370
+  C:0845H         LINE#         371
+  C:0850H         LINE#         372
+  C:085BH         LINE#         373
+  C:0865H         LINE#         374
+  C:0870H         LINE#         375
+  C:087BH         LINE#         376
+  C:0886H         LINE#         377
+  C:0891H         LINE#         378
+  C:089CH         LINE#         379
+  C:08A7H         LINE#         380
+  C:08B2H         LINE#         381
+  -------         ENDPROC       SAREGAMA
+  -------         PROC          INITTIMER0
+  C:0B51H         LINE#         405
+  C:0B51H         LINE#         406
+  C:0B51H         LINE#         407
+  C:0B54H         LINE#         408
+  C:0B57H         LINE#         410
+  C:0B5AH         LINE#         411
+  C:0B5DH         LINE#         413
+  C:0B5FH         LINE#         414
+  C:0B61H         LINE#         415
+  C:0B63H         LINE#         417
+  -------         ENDPROC       INITTIMER0
+  -------         PROC          INITTIMER1
+  C:0B64H         LINE#         419
+  C:0B64H         LINE#         420
+  C:0B64H         LINE#         421
+  C:0B67H         LINE#         422
+  C:0B6AH         LINE#         424
+  C:0B6DH         LINE#         425
+  C:0B70H         LINE#         427
+  C:0B72H         LINE#         428
+  C:0B74H         LINE#         429
+  C:0B76H         LINE#         431
+  -------         ENDPROC       INITTIMER1
+  -------         PROC          MAIN
+  -------         DO            
+  D:0008H         SYMBOL        i
+  -------         ENDDO         
+  C:0A46H         LINE#         433
+  C:0A46H         LINE#         434
+  C:0A46H         LINE#         435
+  C:0A49H         LINE#         437
+  C:0A4CH         LINE#         439
+  C:0A4FH         LINE#         440
+  C:0A52H         LINE#         442
+  C:0A52H         LINE#         443
+BL51 BANKED LINKER/LOCATER V6.22                                                      10/20/2019  21:17:00  PAGE 10
+
+
+  C:0A52H         LINE#         444
+  C:0A55H         LINE#         445
+  C:0A55H         LINE#         446
+  C:0A5CH         LINE#         447
+  C:0A5FH         LINE#         448
+  C:0A5FH         LINE#         449
+  C:0A6AH         LINE#         450
+  C:0A74H         LINE#         451
+  C:0A77H         LINE#         452
+  C:0A7AH         LINE#         453
+  C:0A7AH         LINE#         454
+  C:0A7AH         LINE#         456
+  C:0A7DH         LINE#         457
+  C:0A82H         LINE#         459
+  C:0A85H         LINE#         461
+  C:0A88H         LINE#         462
+  -------         ENDPROC       MAIN
+  -------         ENDMOD        MAIN
+
+  -------         MODULE        DELAY
+  C:001EH         SEGMENT       ?PR?_DELAY10MC?DELAY
+  C:001EH         PUBLIC        _DELAY10MC
+  N:0000H         SYMBOL        DELAY
+  C:001EH         LINE#         9
+  C:001FH         LINE#         10
+  C:0020H         LINE#         11
+  C:0021H         LINE#         12
+  C:0022H         LINE#         13
+  C:0023H         LINE#         14
+  C:0024H         LINE#         15
+  C:0025H         LINE#         16
+  C:0026H         LINE#         17
+  C:0028H         LINE#         18
+  -------         ENDMOD        DELAY
+
+  -------         MODULE        TIMERDELAY
+  C:0B77H         SEGMENT       ?PR?_TIMERDELAY10MC?TIMERDELAY
+  C:0B77H         PUBLIC        _TIMERDELAY10MC
+  B:0088H.7       SYMBOL        TF1
+  D:008DH         SYMBOL        TH1
+  N:0000H         SYMBOL        TIMERDELAY
+  C:0B82H         SYMBOL        TIMERHERE
+  D:008BH         SYMBOL        TL1
+  D:0089H         SYMBOL        TMOD
+  B:0088H.6       SYMBOL        TR1
+  C:0B77H         LINE#         9
+  C:0B7AH         LINE#         10
+  C:0B7DH         LINE#         11
+  C:0B80H         LINE#         12
+  C:0B82H         LINE#         13
+  C:0B85H         LINE#         14
+  C:0B87H         LINE#         15
+  C:0B89H         LINE#         16
+  -------         ENDMOD        TIMERDELAY
+
+  -------         MODULE        ?C?IMUL
+  C:03DDH         PUBLIC        ?C?IMUL
+BL51 BANKED LINKER/LOCATER V6.22                                                      10/20/2019  21:17:00  PAGE 11
+
+
+  -------         ENDMOD        ?C?IMUL
+
+  -------         MODULE        ?C?UIDIV
+  C:03EFH         PUBLIC        ?C?UIDIV
+  -------         ENDMOD        ?C?UIDIV
+
+  -------         MODULE        ?C?SLDIV
+  C:0A8AH         PUBLIC        ?C?SLDIV
+  -------         ENDMOD        ?C?SLDIV
+
+  -------         MODULE        ?C?ULDIV
+  C:0480H         PUBLIC        ?C?ULDIV
+  -------         ENDMOD        ?C?ULDIV
+
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?LOONEYTOONS?MAIN
+
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?FLINTSTONES?MAIN
+
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?ADAMSFAMILY?MAIN
+
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?BEETHOVENPLAY?MAIN
+
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?SAREGAMA?MAIN
+
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_DELAY10MC?DELAY
+
+Program Size: data=57.1 xdata=0 code=2985
+LINK/LOCATE RUN COMPLETE.  6 WARNING(S),  0 ERROR(S)

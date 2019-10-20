@@ -1,0 +1,5 @@
+"main.obj",
+"delay.obj",
+"timerdelay.obj" 
+TO "tien_rolldice" 
+RAMSIZE(256) 
