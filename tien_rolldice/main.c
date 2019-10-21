@@ -3,10 +3,11 @@
 
 #define GPIO_LED            P2  //define LED matrix port
 
-sbit LED1 = P2^5; //LED No.6
-
 #define SEVEN_SEGMENT_SEG_PIN    P0
 #define SEVEN_SEGMENT_COMMON_PIN P1
+
+bit bTimer1IsRunning = 0;
+bit bMelodyIsPlaying = 0;
 
 //4x7 segment LED control
 //Common cathode(?) module
@@ -40,6 +41,7 @@ sbit K5=P3^5;			  //P3
 void Delay10MC(unsigned char);
 //Assembly code in timerdelay.src
 void TimerDelay10MC(unsigned char);
+void Melodyplay(const int Pitch, unsigned int interval);
 
 void EndNote(void);
 void InitTimer1(void);
@@ -85,34 +87,36 @@ void Timer2_ISR(void) interrupt 5 {
 	TF2 = 0; //reset the interrupt/overflow flag
 }
 
-#define TIMER1LOOP 100
 unsigned int iTimer1RunMS = 0;
-char iTimer1Loop = 0;
 
+unsigned char iNotes = 10;
+bit flgLEDForTimer1 = 0;
+//https://what-when-how.com/8051-microcontroller/programming-timers-0-and-1-in-8051-c/
 //http://www.keil.com/support/man/docs/c51/c51_le_interruptfuncs.htm
 //3	TIMER/COUNTER 1	001Bh
 void Timer1_ISR(void) interrupt 3 {
-    if (iTimer1Loop > 0)
-	{
-		iTimer1Delay--;
 
-		TH1 = 0xD8;      // reload it with the same value as inittimer0
-		TL1 = 0xF0;      //TH&TL is 16 bit
+    if (iTimer1RunMS > 0)
+	{
+		iTimer1RunMS--;
+
+		TH1 = 0xFC;      // reload it with the same value as inittimer0
+		TL1 = 0x18;      //TH&TL is 16 bit
 		TF1 = 0;     // Clear the interrupt flag to start again
 	}
 	else
 	{
-		if (iTimer1RunMS > 0) {
-			iTimer1RunMS--;
-			iTimer1Loop = TIMER1LOOP;
-		}
-		else {
-			//stop timer1
-			TR1 = 0;
-			TF1 = 0; //reset the interrupt/overflow flag
-			ET1 = 1; // Disable Timer1 interrupts
-			EndNote();
-		}
+		//stop timer1
+		TR1 = 0;
+		TF1 = 0; //reset the interrupt/overflow flag
+		ET1 = 0; // Disable Timer1 interrupts
+
+		bTimer1IsRunning = 0;
+		flgLEDForTimer1 = 0;
+
+		iNotes++;
+		EndNote();
+
 	}
 }
 
@@ -125,7 +129,6 @@ void Timer0_ISR (void) interrupt 1   // It is called after every 250usec
 {
 	TH0 = 0xD8;      // reload it with the same value as inittimer0
 	TL0 = 0xF0;      //TH&TL is 16 bit
-	LED1 = !LED1;
 
 	if (++iTickCount > 25) {
 		iTickCount = 0;
@@ -172,22 +175,71 @@ void EndNote(void){
 	TR2 = 0; //disable timer 2
 	TF2 = 0; //reset the overflow flag
 	MelodyPin = 1;
+	bMelodyIsPlaying = 0;
 }
 
 void delay_ms(unsigned int ms){
 	for(;ms>0;ms--)
-		TimerDelay10MC(100);
+		Delay10MC(100);
 }
 
 void Melodyplay(const int Pitch, unsigned int interval) {
+	if (bMelodyIsPlaying == 0) {
+		bMelodyIsPlaying = 1;
+	}
+	else {
+		return;
+	}
+
 	if(Pitch!=0)
 		PlayNote(Pitch >> 8, Pitch);
 
 	iTimer1RunMS = interval;
-	iTimer1Loop = TIMER1LOOP;
 	InitTimer1();
 	//delay_ms(interval);
 	//EndNote();
+}
+
+/*
+osc = 11.0592Mhz
+Delay = 50ms
+1000uS = 1mS
+maximum of timer = 65mS (2^16=65536)
+*/
+void InitTimer0(void)
+{
+	TMOD = 0x01;    // Set timer0 in mode 1 (16 bit timer)
+	
+	TH0 = 0xD8;      // 16 bit timer, D8F0 mean 60000-10000=55536 (10000=1milisecond in 12MHz)
+	TL0 = 0xF0;
+
+	TR0 = 1;         // Start Timer 0	
+	ET0 = 1;         // Enable Timer0 interrupts
+	EA  = 1;         // Global interrupt enable
+
+}
+
+//https://what-when-how.com/8051-microcontroller/programming-timers-0-and-1-in-8051-c/
+void InitTimer1(void)
+{
+	if (bTimer1IsRunning == 0) {
+		bTimer1IsRunning = 1;
+	}
+	else {
+		return;
+	}
+	flgLEDForTimer1 = 1;
+
+	TMOD &= 0x0F;    // Clear 4bit high for timer1, keep 4 bit low for timer 0 (or timer 0 will be reset with unknown data)
+	TMOD |= 0x10;    // Set timer1 in mode 1 (16 bit timer)
+	
+	TH1 = 0xFC;      // 16 bit timer, D8F0 mean 60000-1000=FC18
+	TL1 = 0x18;
+
+	TR1 = 1;         // Start Timer 1
+	ET1 = 1;         // Enable Timer1 interrupts
+	EA = 1;         // Global interrupt enable
+
 }
 
 void LooneyToons(){ //d=4,o=5,b=140
@@ -320,6 +372,8 @@ void AdamsFamily(){ //d=4, o=6, b=50
 void PinkPanther(){//d=4,o=5,b=160
 	MelodyTempo(160);
 	Melodyplay(pitch_Eb5, eighthN); //8d#
+	return;
+
 	Melodyplay(pitch_E5, eighthN); //8e
 	Melodyplay(pitch_P, halfN); //2p
 	Melodyplay(pitch_Gb5, eighthN); //8f#
@@ -405,43 +459,10 @@ void Saregama(){
 	delay_ms(1000);
 */
 
-/*
-osc = 11.0592Mhz
-Delay = 50ms
-1000uS = 1mS
-maximum of timer = 65mS (2^16=65536)
-*/
-void InitTimer0(void)
-{
-	TMOD &= 0xF0;    // Clear 4bit field for timer0
-	TMOD |= 0x01;    // Set timer0 in mode 1 (16 bit timer)
-	
-	TH0 = 0xD8;      // 16 bit timer, D8F0 mean 60000-10000=55536 (10000=1milisecond in 12MHz)
-	TL0 = 0xF0;
-
-	TR0 = 1;         // Start Timer 0	
-	ET0 = 1;         // Enable Timer0 interrupts
-	EA  = 1;         // Global interrupt enable
-
-}
-
-void InitTimer1(void)
-{
-	TMOD &= 0xF0;    // Clear 4bit field for timer0
-	TMOD |= 0x01;    // Set timer1 in mode 1 (16 bit timer)
-	
-	TH1 = 0xD8;      // 16 bit timer, D8F0 mean 60000-10000=55536 (10000=1milisecond in 12MHz)
-	TL1 = 0xF0;
-
-	TR1 = 1;         // Start Timer 1
-	ET1 = 1;         // Enable Timer1 interrupts
-	EA = 1;         // Global interrupt enable
-
-}
-
 void main(void)
 {
     unsigned char i = 0;
+	unsigned char matrixLED = 0;
 
     InitTimer0();
 
@@ -458,14 +479,39 @@ void main(void)
 				SEVEN_SEGMENT_SEG_PIN =  Disp_Tab[i++];
 				if (i > 9) i = 0;
 				GPIO_LED = 0xef;	 //1110 1111
-          		PinkPanther();
+
+				iNotes = 0;
+				MelodyTempo(160);
 			}
 		}		
 
+		if (iNotes == 0) {
+			Melodyplay(pitch_Eb5, eighthN); //8d#
+		}
+		else if (iNotes == 1) {
+			Melodyplay(pitch_E5, eighthN); //8e		
+		}
+		else if (iNotes == 2) {
+			Melodyplay(pitch_P, halfN); //2p
+		}
+		else if (iNotes == 3) {
+			Melodyplay(pitch_Gb5, eighthN); //8f#
+		}
+		else if (iNotes == 4) {
+			Melodyplay(pitch_G5, eighthN); //8g
+		}
+
 		if (flgLED == 1)
-			GPIO_LED = 0xDF;
+			matrixLED = 0xDF;
 		else
-			GPIO_LED = 0xBF;
+			matrixLED = 0xBF;
+
+		if (flgLEDForTimer1 == 1)
+			matrixLED &= 0xF7; //1111 0111
+		else
+			matrixLED &= 0xFB; //1111 1011
+
+		GPIO_LED = matrixLED;
 
 		SEVEN_SEGMENT_SEG_PIN =  segmentLEDRoll;
 	}				

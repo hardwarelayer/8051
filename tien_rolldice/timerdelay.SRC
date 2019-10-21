@@ -6,7 +6,7 @@ NAME	TIMERDELAY
 
 	RSEG  ?PR?_TimerDelay10MC?TIMERDELAY
 _TimerDelay10MC:
-	MOV TMOD,#0000001B // Sets Timer 0 to MODE1 (16 bit timer). Timer 1 is not used
+	MOV TMOD,#010H // Sets Timer 1 to MODE1 (16 bit timer).
 	MOV TH1,#0D8H // 60000-10000, 10000 is time for a NOP directive in 12MHz
 	MOV TL1,#0F0H // 
 	SETB TR1 // Starts the Timer 1

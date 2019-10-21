@@ -1,4 +1,4 @@
-C51 COMPILER V9.01   MAIN                                                                  10/20/2019 21:16:59 PAGE 1   
+C51 COMPILER V9.01   MAIN                                                                  10/22/2019 01:54:27 PAGE 1   
 
 
 C51 COMPILER V9.01, COMPILATION OF MODULE MAIN
@@ -12,489 +12,547 @@ line level    source
    3          
    4          #define GPIO_LED            P2  //define LED matrix port
    5          
-   6          sbit LED1 = P2^5; //LED No.6
-   7          
-   8          #define SEVEN_SEGMENT_SEG_PIN    P0
-   9          #define SEVEN_SEGMENT_COMMON_PIN P1
-  10          
-  11          //4x7 segment LED control
-  12          //Common cathode(?) module
-  13          //common pin LED1-4 connect to P1: P10-P13
-  14          
-  15          //segment led will connect to P0 (0-7)
-  16          //and we input 1 to turn one segment on
-  17          unsigned char code Disp_Tab[] = {
-  18                        //.gfe dcba
-  19                  0x3f, //0011 1111 - 0
-  20                  0x06, //0000 0110 - 1
-  21                  0x5b, //0101 1011 - 2
-  22                  0x4f, //0100 1111 - 3
-  23                  0x66, //0110 0110 - 4
-  24                  0x6d, //0110 1101 - 5
-  25                  0x7d, //0111 1101 - 6
-  26                  0x07, //0000 0111 - 7
-  27                  0x7f, //0111 1111 - 8
-  28                  0x6f, //0110 1111 - 9
-  29                  0x40  //0100 0000 - dau - o giua
-  30                  };
-  31          
-  32          //keyboard
-  33          sbit K1=P1^4;                     //Bit OP, K1 connected to P1, pin4 
-  34          sbit K2=P1^5;
-  35          sbit K3=P1^6;
-  36          sbit K4=P1^7;
-  37          sbit K5=P3^5;                     //P3
-  38          
-  39          //Assembly code in delay.src
-  40          void Delay10MC(unsigned char);
-  41          //Assembly code in timerdelay.src
-  42          void TimerDelay10MC(unsigned char);
-  43          
-  44          void EndNote(void);
-  45          void InitTimer1(void);
-  46          
-  47          //buzzer connect to P21
-  48          sbit SPK_PIN_PORT = P2^1; //same as LED at P2^1
-  49          
-  50          #define pitch_P         0
-  51          #define pitch_C5        64580
-  52          #define pitch_Db5       64634
-  53          #define pitch_D5        64685
-  54          #define pitch_Eb5       64732
-  55          #define pitch_E5        64778
-C51 COMPILER V9.01   MAIN                                                                  10/20/2019 21:16:59 PAGE 2   
+   6          #define SEVEN_SEGMENT_SEG_PIN    P0
+   7          #define SEVEN_SEGMENT_COMMON_PIN P1
+   8          
+   9          bit bTimer1IsRunning = 0;
+  10          bit bMelodyIsPlaying = 0;
+  11          
+  12          //4x7 segment LED control
+  13          //Common cathode(?) module
+  14          //common pin LED1-4 connect to P1: P10-P13
+  15          
+  16          //segment led will connect to P0 (0-7)
+  17          //and we input 1 to turn one segment on
+  18          unsigned char code Disp_Tab[] = {
+  19                        //.gfe dcba
+  20                  0x3f, //0011 1111 - 0
+  21                  0x06, //0000 0110 - 1
+  22                  0x5b, //0101 1011 - 2
+  23                  0x4f, //0100 1111 - 3
+  24                  0x66, //0110 0110 - 4
+  25                  0x6d, //0110 1101 - 5
+  26                  0x7d, //0111 1101 - 6
+  27                  0x07, //0000 0111 - 7
+  28                  0x7f, //0111 1111 - 8
+  29                  0x6f, //0110 1111 - 9
+  30                  0x40  //0100 0000 - dau - o giua
+  31                  };
+  32          
+  33          //keyboard
+  34          sbit K1=P1^4;                     //Bit OP, K1 connected to P1, pin4 
+  35          sbit K2=P1^5;
+  36          sbit K3=P1^6;
+  37          sbit K4=P1^7;
+  38          sbit K5=P3^5;                     //P3
+  39          
+  40          //Assembly code in delay.src
+  41          void Delay10MC(unsigned char);
+  42          //Assembly code in timerdelay.src
+  43          void TimerDelay10MC(unsigned char);
+  44          void Melodyplay(const int Pitch, unsigned int interval);
+  45          
+  46          void EndNote(void);
+  47          void InitTimer1(void);
+  48          
+  49          //buzzer connect to P21
+  50          sbit SPK_PIN_PORT = P2^1; //same as LED at P2^1
+  51          
+  52          #define pitch_P         0
+  53          #define pitch_C5        64580
+  54          #define pitch_Db5       64634
+  55          #define pitch_D5        64685
+C51 COMPILER V9.01   MAIN                                                                  10/22/2019 01:54:27 PAGE 2   
 
-  56          #define pitch_F5        64820
-  57          #define pitch_Gb5       64860
-  58          #define pitch_G5        64898
-  59          #define pitch_Ab5       64934
-  60          #define pitch_A5        64968
-  61          #define pitch_Bb5       65000
-  62          #define pitch_B5        65030
-  63          #define pitch_C6        65058
-  64          #define pitch_Db6       65085
-  65          #define pitch_D6        65110
-  66          #define pitch_Eb6       65134
-  67          #define pitch_E6        65157
-  68          #define pitch_F6        65178
-  69          #define pitch_Gb6       65198
-  70          #define pitch_G6        65217
-  71          #define pitch_Ab6       65235
-  72          #define pitch_A6        65252
-  73          #define pitch_Bb6       65268
-  74          #define pitch_B6        65283
-  75          
-  76          #define MelodyPin       SPK_PIN_PORT
+  56          #define pitch_Eb5       64732
+  57          #define pitch_E5        64778
+  58          #define pitch_F5        64820
+  59          #define pitch_Gb5       64860
+  60          #define pitch_G5        64898
+  61          #define pitch_Ab5       64934
+  62          #define pitch_A5        64968
+  63          #define pitch_Bb5       65000
+  64          #define pitch_B5        65030
+  65          #define pitch_C6        65058
+  66          #define pitch_Db6       65085
+  67          #define pitch_D6        65110
+  68          #define pitch_Eb6       65134
+  69          #define pitch_E6        65157
+  70          #define pitch_F6        65178
+  71          #define pitch_Gb6       65198
+  72          #define pitch_G6        65217
+  73          #define pitch_Ab6       65235
+  74          #define pitch_A6        65252
+  75          #define pitch_Bb6       65268
+  76          #define pitch_B6        65283
   77          
-  78          unsigned int qtrN, qtrN_us, wholeN, wholeN_us, halfN, halfN_us, eighthN, eighthN_us,
-  79                                   sixteenN, sixteenN_us, thirtyTwoN, thirtyTwoN_us, sixtyFourN, sixtyFourN_us,
-  80                                   sixN, sixN_us, twelveN, twelveN_us, twentyFourN, twentyFourN_us;
-  81          
-  82          //5     TIMER/COUNTER 2 (8052)  002Bh
-  83          void Timer2_ISR(void) interrupt 5 {
-  84   1              MelodyPin = ~MelodyPin; //toggle out pin
-  85   1              TF2 = 0; //reset the interrupt/overflow flag
-  86   1      }
-  87          
-  88          unsigned int iTimer1Delay = 0;
+  78          #define MelodyPin       SPK_PIN_PORT
+  79          
+  80          unsigned int qtrN, qtrN_us, wholeN, wholeN_us, halfN, halfN_us, eighthN, eighthN_us,
+  81                                   sixteenN, sixteenN_us, thirtyTwoN, thirtyTwoN_us, sixtyFourN, sixtyFourN_us,
+  82                                   sixN, sixN_us, twelveN, twelveN_us, twentyFourN, twentyFourN_us;
+  83          
+  84          //5     TIMER/COUNTER 2 (8052)  002Bh
+  85          void Timer2_ISR(void) interrupt 5 {
+  86   1              MelodyPin = ~MelodyPin; //toggle out pin
+  87   1              TF2 = 0; //reset the interrupt/overflow flag
+  88   1      }
   89          
-  90          //http://www.keil.com/support/man/docs/c51/c51_le_interruptfuncs.htm
-  91          //3     TIMER/COUNTER 1 001Bh
-  92          void Timer1_ISR(void) interrupt 3 {
-  93   1          if (iTimer1Delay > 0)
-  94   1              {
-  95   2                      iTimer1Delay--;
-  96   2      
-  97   2                      TH1 = 0xD8;      // reload it with the same value as inittimer0
-  98   2                      TL1 = 0xF0;      //TH&TL is 16 bit
-  99   2                      TF1 = 0;     // Clear the interrupt flag to start again
- 100   2              }
- 101   1              else
- 102   1              {
- 103   2                      //stop timer1
- 104   2                      TR1 = 0;
- 105   2                      TF1 = 0; //reset the interrupt/overflow flag
- 106   2                      ET1 = 1; // Disable Timer1 interrupts
- 107   2                      EndNote();
- 108   2              }
- 109   1      }
- 110          
- 111          short iTickCount = 0;
- 112          bit flgLED = 1;
- 113          unsigned char segmentLEDRoll = 0x01;
- 114          
- 115          //1     TIMER/COUNTER 0 000Bh
- 116          void Timer0_ISR (void) interrupt 1   // It is called after every 250usec
- 117          {
-C51 COMPILER V9.01   MAIN                                                                  10/20/2019 21:16:59 PAGE 3   
+  90          unsigned int iTimer1RunMS = 0;
+  91          
+  92          unsigned char iNotes = 10;
+  93          bit flgLEDForTimer1 = 0;
+  94          //https://what-when-how.com/8051-microcontroller/programming-timers-0-and-1-in-8051-c/
+  95          //http://www.keil.com/support/man/docs/c51/c51_le_interruptfuncs.htm
+  96          //3     TIMER/COUNTER 1 001Bh
+  97          void Timer1_ISR(void) interrupt 3 {
+  98   1      
+  99   1          if (iTimer1RunMS > 0)
+ 100   1              {
+ 101   2                      iTimer1RunMS--;
+ 102   2      
+ 103   2                      TH1 = 0xFC;      // reload it with the same value as inittimer0
+ 104   2                      TL1 = 0x18;      //TH&TL is 16 bit
+ 105   2                      TF1 = 0;     // Clear the interrupt flag to start again
+ 106   2              }
+ 107   1              else
+ 108   1              {
+ 109   2                      //stop timer1
+ 110   2                      TR1 = 0;
+ 111   2                      TF1 = 0; //reset the interrupt/overflow flag
+ 112   2                      ET1 = 0; // Disable Timer1 interrupts
+ 113   2      
+ 114   2                      bTimer1IsRunning = 0;
+ 115   2                      flgLEDForTimer1 = 0;
+ 116   2      
+ 117   2                      iNotes++;
+C51 COMPILER V9.01   MAIN                                                                  10/22/2019 01:54:27 PAGE 3   
 
- 118   1              //TH0 = 0xD8;      // reload it with the same value as inittimer0
- 119   1              //TL0 = 0xF0;      //TH&TL is 16 bit
- 120   1              LED1 = !LED1;
- 121   1      
- 122   1              if (++iTickCount > 25) {
- 123   2                      iTickCount = 0;
- 124   2                      flgLED = !flgLED; //invert it
- 125   2      
- 126   2                      if (segmentLEDRoll >= 0x20) { //0010 0000
- 127   3                              segmentLEDRoll = 1;
- 128   3                      }
- 129   2                      else {
- 130   3                          segmentLEDRoll = segmentLEDRoll << 1;
- 131   3                      }
- 132   2              }
- 133   1      
- 134   1      //      TF0 = 0;     // Clear the interrupt flag to start again
- 135   1      }
- 136          
- 137          void MelodyTempo(int Tempo){
- 138   1              qtrN = ((60000/Tempo));
- 139   1              wholeN = qtrN*4;
- 140   1              halfN = (qtrN*2);
- 141   1              eighthN = (qtrN/2);
- 142   1              sixteenN = (qtrN/4);
- 143   1              thirtyTwoN = (qtrN/8);
- 144   1              sixtyFourN = (qtrN/16);
- 145   1              sixN = (wholeN/6);
- 146   1              twelveN = (wholeN/12);
- 147   1              twentyFourN = (wholeN/24);
- 148   1      }
- 149          
- 150          void PlayNote(const unsigned char PitchH, const unsigned char PitchL) {
- 151   1              RCAP2H = PitchH; //Timer/Counter 2 Reload/Capture High Byte
- 152   1              RCAP2L = PitchL;
- 153   1              TH2 = PitchH;
- 154   1              TL2 = PitchL;
- 155   1              //Once timer flag (TF) is set, the programmer must clear it before it can be set again.
- 156   1              TF2 = 0; //reset/clear the interrupt/overflow flag
- 157   1              TR2 = 1; //timer 2 enabled (start)
- 158   1              ET2 = 1; //Enable timer 2
- 159   1              EA = 1; //global interrupt enable 
- 160   1      }
- 161          
- 162          void EndNote(void){
- 163   1              //EA = 0; //disable all interrupt
- 164   1              TR2 = 0; //disable timer 2
- 165   1              TF2 = 0; //reset the overflow flag
- 166   1              MelodyPin = 1;
- 167   1      }
- 168          
- 169          void delay_ms(unsigned int ms){
- 170   1              for(;ms>0;ms--)
- 171   1                      TimerDelay10MC(100);
- 172   1      }
- 173          
- 174          void Melodyplay(const int Pitch, unsigned int interval) {
- 175   1              if(Pitch!=0)
- 176   1                      PlayNote(Pitch >> 8, Pitch);
- 177   1      
- 178   1              iTimer1Delay = interval*100;
- 179   1              InitTimer1();
-C51 COMPILER V9.01   MAIN                                                                  10/20/2019 21:16:59 PAGE 4   
+ 118   2                      EndNote();
+ 119   2      
+ 120   2              }
+ 121   1      }
+ 122          
+ 123          short iTickCount = 0;
+ 124          bit flgLED = 1;
+ 125          unsigned char segmentLEDRoll = 0x01;
+ 126          
+ 127          //1     TIMER/COUNTER 0 000Bh
+ 128          void Timer0_ISR (void) interrupt 1   // It is called after every 250usec
+ 129          {
+ 130   1              TH0 = 0xD8;      // reload it with the same value as inittimer0
+ 131   1              TL0 = 0xF0;      //TH&TL is 16 bit
+ 132   1      
+ 133   1              if (++iTickCount > 25) {
+ 134   2                      iTickCount = 0;
+ 135   2                      flgLED = !flgLED; //invert it
+ 136   2      
+ 137   2                      if (segmentLEDRoll >= 0x20) { //0010 0000
+ 138   3                              segmentLEDRoll = 1;
+ 139   3                      }
+ 140   2                      else {
+ 141   3                          segmentLEDRoll = segmentLEDRoll << 1;
+ 142   3                      }
+ 143   2              }
+ 144   1      
+ 145   1              TF0 = 0;     // Clear the interrupt flag to start again
+ 146   1      }
+ 147          
+ 148          void MelodyTempo(int Tempo){
+ 149   1              qtrN = ((60000/Tempo));
+ 150   1              wholeN = qtrN*4;
+ 151   1              halfN = (qtrN*2);
+ 152   1              eighthN = (qtrN/2);
+ 153   1              sixteenN = (qtrN/4);
+ 154   1              thirtyTwoN = (qtrN/8);
+ 155   1              sixtyFourN = (qtrN/16);
+ 156   1              sixN = (wholeN/6);
+ 157   1              twelveN = (wholeN/12);
+ 158   1              twentyFourN = (wholeN/24);
+ 159   1      }
+ 160          
+ 161          void PlayNote(const unsigned char PitchH, const unsigned char PitchL) {
+ 162   1              RCAP2H = PitchH; //Timer/Counter 2 Reload/Capture High Byte
+ 163   1              RCAP2L = PitchL;
+ 164   1              TH2 = PitchH;
+ 165   1              TL2 = PitchL;
+ 166   1              //Once timer flag (TF) is set, the programmer must clear it before it can be set again.
+ 167   1              TF2 = 0; //reset/clear the interrupt/overflow flag
+ 168   1              TR2 = 1; //timer 2 enabled (start)
+ 169   1              ET2 = 1; //Enable timer 2
+ 170   1              EA = 1; //global interrupt enable 
+ 171   1      }
+ 172          
+ 173          void EndNote(void){
+ 174   1              //EA = 0; //disable all interrupt
+ 175   1              TR2 = 0; //disable timer 2
+ 176   1              TF2 = 0; //reset the overflow flag
+ 177   1              MelodyPin = 1;
+ 178   1              bMelodyIsPlaying = 0;
+ 179   1      }
+C51 COMPILER V9.01   MAIN                                                                  10/22/2019 01:54:27 PAGE 4   
 
- 180   1              //delay_ms(interval);
- 181   1              //EndNote();
- 182   1      }
- 183          
- 184          void LooneyToons(){ //d=4,o=5,b=140
- 185   1              MelodyTempo(140);
- 186   1              Melodyplay(pitch_C6, qtrN); //c6
- 187   1              Melodyplay(pitch_F6, eighthN); //8f6
- 188   1              Melodyplay(pitch_E6, eighthN); //8e6
- 189   1              Melodyplay(pitch_D6, eighthN); //8d6
- 190   1              Melodyplay(pitch_C6, eighthN); //8c6
- 191   1              Melodyplay(pitch_A5, qtrN); //a.
- 192   1              Melodyplay(pitch_A5, eighthN); //a.
- 193   1              Melodyplay(pitch_C6, eighthN); //8c6
- 194   1              Melodyplay(pitch_F6, eighthN); //8f6
- 195   1              Melodyplay(pitch_E6, eighthN); //8e6
- 196   1              Melodyplay(pitch_D6, eighthN); //8d6
- 197   1              Melodyplay(pitch_Eb6, eighthN); //8d#6
- 198   1              Melodyplay(pitch_E6, qtrN); //e.6
- 199   1              Melodyplay(pitch_E6, eighthN); //e.6
- 200   1              Melodyplay(pitch_E6, eighthN); //8e6
- 201   1              Melodyplay(pitch_E6, eighthN); //8e6
- 202   1              Melodyplay(pitch_C6, eighthN); //8c6
- 203   1              Melodyplay(pitch_D6, eighthN); //8d6
- 204   1              Melodyplay(pitch_C6, eighthN); //8c6
- 205   1              Melodyplay(pitch_E6, eighthN); //8e6
- 206   1              Melodyplay(pitch_C6, eighthN); //8c6
- 207   1              Melodyplay(pitch_D6, eighthN); //8d6
- 208   1              Melodyplay(pitch_C6, eighthN); //8c6
- 209   1              Melodyplay(pitch_A5, eighthN); //8a
- 210   1              Melodyplay(pitch_C6, eighthN); //8c6
- 211   1              Melodyplay(pitch_G5, eighthN); //8g
- 212   1              Melodyplay(pitch_Bb5, eighthN); //8a#
- 213   1              Melodyplay(pitch_A5, eighthN); //8a
- 214   1              Melodyplay(pitch_F5, eighthN); //8f
- 215   1              Melodyplay(pitch_P, wholeN); //1P
- 216   1      }
- 217          
- 218          void Flintstones(){//d=4,o=5,b=200
- 219   1              MelodyTempo(200);
- 220   1              Melodyplay(pitch_Ab5, qtrN); //g#
- 221   1              Melodyplay(pitch_Db5, qtrN); //c#
- 222   1              Melodyplay(pitch_P, eighthN); //8p
- 223   1              Melodyplay(pitch_Db6, qtrN); //c#6
- 224   1              Melodyplay(pitch_Bb5, eighthN); //8a#
- 225   1              Melodyplay(pitch_Ab5, qtrN); //g#
- 226   1              Melodyplay(pitch_Db5, qtrN); //c#
- 227   1              Melodyplay(pitch_P, eighthN); //8p
- 228   1              Melodyplay(pitch_Ab5, qtrN); //g#
- 229   1              Melodyplay(pitch_Gb5, eighthN); //8f#
- 230   1              Melodyplay(pitch_F5, eighthN); //8f
- 231   1              Melodyplay(pitch_F5, eighthN); //8f
- 232   1              Melodyplay(pitch_Gb5, eighthN); //8f#
- 233   1              Melodyplay(pitch_Ab5, eighthN); //8g#
- 234   1              Melodyplay(pitch_Db5, qtrN); //c#
- 235   1              Melodyplay(pitch_Eb5, qtrN); //d#
- 236   1              Melodyplay(pitch_F5, halfN); //2f
- 237   1              Melodyplay(pitch_P, halfN); //2p
- 238   1              Melodyplay(pitch_Ab5, qtrN); //g#
- 239   1              Melodyplay(pitch_Db5, qtrN); //c#
- 240   1              Melodyplay(pitch_P, eighthN); //8p
- 241   1              Melodyplay(pitch_Db6, qtrN); //c#6
-C51 COMPILER V9.01   MAIN                                                                  10/20/2019 21:16:59 PAGE 5   
+ 180          
+ 181          void delay_ms(unsigned int ms){
+ 182   1              for(;ms>0;ms--)
+ 183   1                      Delay10MC(100);
+ 184   1      }
+ 185          
+ 186          void Melodyplay(const int Pitch, unsigned int interval) {
+ 187   1              if (bMelodyIsPlaying == 0) {
+ 188   2                      bMelodyIsPlaying = 1;
+ 189   2              }
+ 190   1              else {
+ 191   2                      return;
+ 192   2              }
+ 193   1      
+ 194   1              if(Pitch!=0)
+ 195   1                      PlayNote(Pitch >> 8, Pitch);
+ 196   1      
+ 197   1              iTimer1RunMS = interval;
+ 198   1              InitTimer1();
+ 199   1              //delay_ms(interval);
+ 200   1              //EndNote();
+ 201   1      }
+ 202          
+ 203          /*
+ 204          osc = 11.0592Mhz
+ 205          Delay = 50ms
+ 206          1000uS = 1mS
+ 207          maximum of timer = 65mS (2^16=65536)
+ 208          */
+ 209          void InitTimer0(void)
+ 210          {
+ 211   1              TMOD = 0x01;    // Set timer0 in mode 1 (16 bit timer)
+ 212   1              
+ 213   1              TH0 = 0xD8;      // 16 bit timer, D8F0 mean 60000-10000=55536 (10000=1milisecond in 12MHz)
+ 214   1              TL0 = 0xF0;
+ 215   1      
+ 216   1              TR0 = 1;         // Start Timer 0       
+ 217   1              ET0 = 1;         // Enable Timer0 interrupts
+ 218   1              EA  = 1;         // Global interrupt enable
+ 219   1      
+ 220   1      }
+ 221          
+ 222          //https://what-when-how.com/8051-microcontroller/programming-timers-0-and-1-in-8051-c/
+ 223          void InitTimer1(void)
+ 224          {
+ 225   1              if (bTimer1IsRunning == 0) {
+ 226   2                      bTimer1IsRunning = 1;
+ 227   2              }
+ 228   1              else {
+ 229   2                      return;
+ 230   2              }
+ 231   1              flgLEDForTimer1 = 1;
+ 232   1      
+ 233   1              TMOD &= 0x0F;    // Clear 4bit high for timer1, keep 4 bit low for timer 0 (or timer 0 will be reset with
+             - unknown data)
+ 234   1              TMOD |= 0x10;    // Set timer1 in mode 1 (16 bit timer)
+ 235   1              
+ 236   1              TH1 = 0xFC;      // 16 bit timer, D8F0 mean 60000-1000=FC18
+ 237   1              TL1 = 0x18;
+ 238   1      
+ 239   1              TR1 = 1;         // Start Timer 1
+ 240   1              ET1 = 1;         // Enable Timer1 interrupts
+C51 COMPILER V9.01   MAIN                                                                  10/22/2019 01:54:27 PAGE 5   
 
- 242   1              Melodyplay(pitch_Bb5, eighthN); //8a#
- 243   1              Melodyplay(pitch_Ab5, qtrN); //g#
- 244   1              Melodyplay(pitch_Db5, qtrN); //c#
- 245   1              Melodyplay(pitch_P, eighthN); //8p
- 246   1              Melodyplay(pitch_Ab5, qtrN); //g#
- 247   1              Melodyplay(pitch_Gb5, eighthN); //8f#
- 248   1              Melodyplay(pitch_F5, eighthN); //8f
- 249   1              Melodyplay(pitch_F5, eighthN); //8f
- 250   1              Melodyplay(pitch_Gb5, eighthN); //8f#
- 251   1              Melodyplay(pitch_Ab5, eighthN); //8g#
- 252   1              Melodyplay(pitch_Db5, qtrN); //c#
- 253   1              Melodyplay(pitch_Eb5, qtrN); //d#
- 254   1              Melodyplay(pitch_Db5, halfN); //2c#
- 255   1      }
- 256          
- 257          void AdamsFamily(){ //d=4, o=6, b=50
- 258   1              MelodyTempo(50);
- 259   1              Melodyplay(pitch_P, thirtyTwoN); //32P
- 260   1              Melodyplay(pitch_Db6, thirtyTwoN); //32c#
- 261   1              Melodyplay(pitch_Gb6, sixteenN); //16f#
- 262   1              Melodyplay(pitch_Bb6, thirtyTwoN); //32a#
- 263   1              Melodyplay(pitch_Gb6, sixteenN); //16f#
- 264   1              Melodyplay(pitch_Db6, thirtyTwoN); //32c#
- 265   1              Melodyplay(pitch_C6, sixteenN); //16c
- 266   1              Melodyplay(pitch_Ab6, eighthN); //8g#
- 267   1              Melodyplay(pitch_Gb6, thirtyTwoN); //32f#
- 268   1              Melodyplay(pitch_F6, sixteenN); //16f
- 269   1              Melodyplay(pitch_Ab6, thirtyTwoN); //32g#
- 270   1              Melodyplay(pitch_F6, sixteenN); //16f
- 271   1              Melodyplay(pitch_Db6, thirtyTwoN); //32c#
- 272   1              Melodyplay(pitch_Bb5, sixteenN); //16a#5
- 273   1              Melodyplay(pitch_Gb6, eighthN); //8f#
- 274   1              Melodyplay(pitch_Db6, thirtyTwoN); //32c#
- 275   1              Melodyplay(pitch_Gb6, sixteenN); //16f#
- 276   1              Melodyplay(pitch_Bb6, thirtyTwoN); //32a#
- 277   1              Melodyplay(pitch_Gb6, sixteenN); //16f#
- 278   1              Melodyplay(pitch_Db6, thirtyTwoN); //32c#
- 279   1              Melodyplay(pitch_C6, sixteenN); //16c
- 280   1              Melodyplay(pitch_Ab6, eighthN); //8g#
- 281   1              Melodyplay(pitch_Gb6, thirtyTwoN); //32f#
- 282   1              Melodyplay(pitch_F6, sixteenN); //16f
- 283   1              Melodyplay(pitch_Db6, thirtyTwoN); //32c#
- 284   1              Melodyplay(pitch_Eb6, sixteenN); //16d#
- 285   1              Melodyplay(pitch_F6, thirtyTwoN); //32f
- 286   1              Melodyplay(pitch_Gb6, qtrN); //f#
- 287   1              Melodyplay(pitch_Db6, thirtyTwoN); //32c#
- 288   1              Melodyplay(pitch_Eb6, thirtyTwoN); //32d#
- 289   1              Melodyplay(pitch_F6, thirtyTwoN); //32f
- 290   1              Melodyplay(pitch_Gb6, qtrN); //f#
- 291   1              Melodyplay(pitch_Db6, thirtyTwoN); //32c#
- 292   1              Melodyplay(pitch_Eb6, thirtyTwoN); //32d#
- 293   1              Melodyplay(pitch_G6, thirtyTwoN); //32g
- 294   1              Melodyplay(pitch_Ab6, qtrN); //g#
- 295   1              Melodyplay(pitch_Eb6, thirtyTwoN); //32d#
- 296   1              Melodyplay(pitch_F6, thirtyTwoN); //32f
- 297   1              Melodyplay(pitch_G6, thirtyTwoN); //32g
- 298   1              Melodyplay(pitch_Ab6, sixteenN); //16g#.
- 299   1              Melodyplay(pitch_Ab6, eighthN); //16g#.
- 300   1              Melodyplay(pitch_Eb6, thirtyTwoN); //32d#
- 301   1              Melodyplay(pitch_F6, thirtyTwoN); //32f
- 302   1              Melodyplay(pitch_G6, thirtyTwoN); //32g
- 303   1              Melodyplay(pitch_Ab6, sixteenN); //16g#.
-C51 COMPILER V9.01   MAIN                                                                  10/20/2019 21:16:59 PAGE 6   
+ 241   1              EA = 1;         // Global interrupt enable
+ 242   1      
+ 243   1      }
+ 244          
+ 245          void LooneyToons(){ //d=4,o=5,b=140
+ 246   1              MelodyTempo(140);
+ 247   1              Melodyplay(pitch_C6, qtrN); //c6
+ 248   1              Melodyplay(pitch_F6, eighthN); //8f6
+ 249   1              Melodyplay(pitch_E6, eighthN); //8e6
+ 250   1              Melodyplay(pitch_D6, eighthN); //8d6
+ 251   1              Melodyplay(pitch_C6, eighthN); //8c6
+ 252   1              Melodyplay(pitch_A5, qtrN); //a.
+ 253   1              Melodyplay(pitch_A5, eighthN); //a.
+ 254   1              Melodyplay(pitch_C6, eighthN); //8c6
+ 255   1              Melodyplay(pitch_F6, eighthN); //8f6
+ 256   1              Melodyplay(pitch_E6, eighthN); //8e6
+ 257   1              Melodyplay(pitch_D6, eighthN); //8d6
+ 258   1              Melodyplay(pitch_Eb6, eighthN); //8d#6
+ 259   1              Melodyplay(pitch_E6, qtrN); //e.6
+ 260   1              Melodyplay(pitch_E6, eighthN); //e.6
+ 261   1              Melodyplay(pitch_E6, eighthN); //8e6
+ 262   1              Melodyplay(pitch_E6, eighthN); //8e6
+ 263   1              Melodyplay(pitch_C6, eighthN); //8c6
+ 264   1              Melodyplay(pitch_D6, eighthN); //8d6
+ 265   1              Melodyplay(pitch_C6, eighthN); //8c6
+ 266   1              Melodyplay(pitch_E6, eighthN); //8e6
+ 267   1              Melodyplay(pitch_C6, eighthN); //8c6
+ 268   1              Melodyplay(pitch_D6, eighthN); //8d6
+ 269   1              Melodyplay(pitch_C6, eighthN); //8c6
+ 270   1              Melodyplay(pitch_A5, eighthN); //8a
+ 271   1              Melodyplay(pitch_C6, eighthN); //8c6
+ 272   1              Melodyplay(pitch_G5, eighthN); //8g
+ 273   1              Melodyplay(pitch_Bb5, eighthN); //8a#
+ 274   1              Melodyplay(pitch_A5, eighthN); //8a
+ 275   1              Melodyplay(pitch_F5, eighthN); //8f
+ 276   1              Melodyplay(pitch_P, wholeN); //1P
+ 277   1      }
+ 278          
+ 279          void Flintstones(){//d=4,o=5,b=200
+ 280   1              MelodyTempo(200);
+ 281   1              Melodyplay(pitch_Ab5, qtrN); //g#
+ 282   1              Melodyplay(pitch_Db5, qtrN); //c#
+ 283   1              Melodyplay(pitch_P, eighthN); //8p
+ 284   1              Melodyplay(pitch_Db6, qtrN); //c#6
+ 285   1              Melodyplay(pitch_Bb5, eighthN); //8a#
+ 286   1              Melodyplay(pitch_Ab5, qtrN); //g#
+ 287   1              Melodyplay(pitch_Db5, qtrN); //c#
+ 288   1              Melodyplay(pitch_P, eighthN); //8p
+ 289   1              Melodyplay(pitch_Ab5, qtrN); //g#
+ 290   1              Melodyplay(pitch_Gb5, eighthN); //8f#
+ 291   1              Melodyplay(pitch_F5, eighthN); //8f
+ 292   1              Melodyplay(pitch_F5, eighthN); //8f
+ 293   1              Melodyplay(pitch_Gb5, eighthN); //8f#
+ 294   1              Melodyplay(pitch_Ab5, eighthN); //8g#
+ 295   1              Melodyplay(pitch_Db5, qtrN); //c#
+ 296   1              Melodyplay(pitch_Eb5, qtrN); //d#
+ 297   1              Melodyplay(pitch_F5, halfN); //2f
+ 298   1              Melodyplay(pitch_P, halfN); //2p
+ 299   1              Melodyplay(pitch_Ab5, qtrN); //g#
+ 300   1              Melodyplay(pitch_Db5, qtrN); //c#
+ 301   1              Melodyplay(pitch_P, eighthN); //8p
+ 302   1              Melodyplay(pitch_Db6, qtrN); //c#6
+C51 COMPILER V9.01   MAIN                                                                  10/22/2019 01:54:27 PAGE 6   
 
- 304   1              Melodyplay(pitch_Ab6, eighthN); //16g#.
- 305   1              Melodyplay(pitch_Db6, thirtyTwoN); //32c#
- 306   1              Melodyplay(pitch_Eb6, thirtyTwoN); //32d#
- 307   1              Melodyplay(pitch_F6, thirtyTwoN); //32f
- 308   1              Melodyplay(pitch_Gb6, thirtyTwoN); //32f#
- 309   1      }
- 310          
- 311          void PinkPanther(){//d=4,o=5,b=160
- 312   1              MelodyTempo(160);
- 313   1              Melodyplay(pitch_Eb5, eighthN); //8d#
- 314   1              Melodyplay(pitch_E5, eighthN); //8e
- 315   1              Melodyplay(pitch_P, halfN); //2p
- 316   1              Melodyplay(pitch_Gb5, eighthN); //8f#
- 317   1              Melodyplay(pitch_G5, eighthN); //8g
- 318   1              Melodyplay(pitch_P, halfN); //2p
- 319   1              Melodyplay(pitch_Eb5, eighthN); //8d#
- 320   1              Melodyplay(pitch_E5, eighthN); //8e
- 321   1              Melodyplay(pitch_P, sixteenN); //16p
- 322   1              Melodyplay(pitch_Gb5, eighthN); //8f#
- 323   1              Melodyplay(pitch_G5, eighthN); //8g
- 324   1              Melodyplay(pitch_P, sixteenN); //16p
- 325   1              Melodyplay(pitch_C6, eighthN); //8c6
- 326   1              Melodyplay(pitch_B5, eighthN); //8b
- 327   1              Melodyplay(pitch_P, sixteenN); //16p
- 328   1              Melodyplay(pitch_Eb5, eighthN); //8d#
- 329   1              Melodyplay(pitch_E5, eighthN); //8e
- 330   1              Melodyplay(pitch_P, sixteenN); //16p
- 331   1              Melodyplay(pitch_B5, eighthN); //8b
- 332   1              Melodyplay(pitch_Bb5, halfN); //2a#
- 333   1              Melodyplay(pitch_P, halfN); //2p
- 334   1              Melodyplay(pitch_A5, sixteenN); //16a
- 335   1              Melodyplay(pitch_G5, sixteenN); //16g
- 336   1              Melodyplay(pitch_E5, sixteenN); //16e
- 337   1              Melodyplay(pitch_D5, sixteenN); //16d
- 338   1              Melodyplay(pitch_E5, halfN); //2e
- 339   1      }
- 340          
- 341          void BeethovenPlay(){
- 342   1              MelodyTempo(240);
- 343   1              Melodyplay(pitch_E6, qtrN);
- 344   1              Melodyplay(pitch_Eb6, qtrN);
- 345   1              Melodyplay(pitch_E6, qtrN);
- 346   1              Melodyplay(pitch_Eb6, qtrN);
- 347   1              Melodyplay(pitch_E6, qtrN);
- 348   1              Melodyplay(pitch_B5, qtrN);
- 349   1              Melodyplay(pitch_D6, qtrN);
- 350   1              Melodyplay(pitch_C6, qtrN);
- 351   1              Melodyplay(pitch_A5, halfN);
- 352   1              Melodyplay(pitch_C5, qtrN);
- 353   1              Melodyplay(pitch_E6, qtrN);
- 354   1              Melodyplay(pitch_A6, qtrN);
- 355   1              Melodyplay(pitch_B6, halfN);
- 356   1              
- 357   1              Melodyplay(pitch_E5, qtrN);
- 358   1              Melodyplay(pitch_A5, qtrN);
- 359   1              Melodyplay(pitch_B5, qtrN);
- 360   1              Melodyplay(pitch_C6, halfN);
- 361   1      }
- 362          
- 363          void Saregama(){
- 364   1              MelodyTempo(240);
- 365   1              Melodyplay(pitch_Db5, qtrN);
-C51 COMPILER V9.01   MAIN                                                                  10/20/2019 21:16:59 PAGE 7   
+ 303   1              Melodyplay(pitch_Bb5, eighthN); //8a#
+ 304   1              Melodyplay(pitch_Ab5, qtrN); //g#
+ 305   1              Melodyplay(pitch_Db5, qtrN); //c#
+ 306   1              Melodyplay(pitch_P, eighthN); //8p
+ 307   1              Melodyplay(pitch_Ab5, qtrN); //g#
+ 308   1              Melodyplay(pitch_Gb5, eighthN); //8f#
+ 309   1              Melodyplay(pitch_F5, eighthN); //8f
+ 310   1              Melodyplay(pitch_F5, eighthN); //8f
+ 311   1              Melodyplay(pitch_Gb5, eighthN); //8f#
+ 312   1              Melodyplay(pitch_Ab5, eighthN); //8g#
+ 313   1              Melodyplay(pitch_Db5, qtrN); //c#
+ 314   1              Melodyplay(pitch_Eb5, qtrN); //d#
+ 315   1              Melodyplay(pitch_Db5, halfN); //2c#
+ 316   1      }
+ 317          
+ 318          void AdamsFamily(){ //d=4, o=6, b=50
+ 319   1              MelodyTempo(50);
+ 320   1              Melodyplay(pitch_P, thirtyTwoN); //32P
+ 321   1              Melodyplay(pitch_Db6, thirtyTwoN); //32c#
+ 322   1              Melodyplay(pitch_Gb6, sixteenN); //16f#
+ 323   1              Melodyplay(pitch_Bb6, thirtyTwoN); //32a#
+ 324   1              Melodyplay(pitch_Gb6, sixteenN); //16f#
+ 325   1              Melodyplay(pitch_Db6, thirtyTwoN); //32c#
+ 326   1              Melodyplay(pitch_C6, sixteenN); //16c
+ 327   1              Melodyplay(pitch_Ab6, eighthN); //8g#
+ 328   1              Melodyplay(pitch_Gb6, thirtyTwoN); //32f#
+ 329   1              Melodyplay(pitch_F6, sixteenN); //16f
+ 330   1              Melodyplay(pitch_Ab6, thirtyTwoN); //32g#
+ 331   1              Melodyplay(pitch_F6, sixteenN); //16f
+ 332   1              Melodyplay(pitch_Db6, thirtyTwoN); //32c#
+ 333   1              Melodyplay(pitch_Bb5, sixteenN); //16a#5
+ 334   1              Melodyplay(pitch_Gb6, eighthN); //8f#
+ 335   1              Melodyplay(pitch_Db6, thirtyTwoN); //32c#
+ 336   1              Melodyplay(pitch_Gb6, sixteenN); //16f#
+ 337   1              Melodyplay(pitch_Bb6, thirtyTwoN); //32a#
+ 338   1              Melodyplay(pitch_Gb6, sixteenN); //16f#
+ 339   1              Melodyplay(pitch_Db6, thirtyTwoN); //32c#
+ 340   1              Melodyplay(pitch_C6, sixteenN); //16c
+ 341   1              Melodyplay(pitch_Ab6, eighthN); //8g#
+ 342   1              Melodyplay(pitch_Gb6, thirtyTwoN); //32f#
+ 343   1              Melodyplay(pitch_F6, sixteenN); //16f
+ 344   1              Melodyplay(pitch_Db6, thirtyTwoN); //32c#
+ 345   1              Melodyplay(pitch_Eb6, sixteenN); //16d#
+ 346   1              Melodyplay(pitch_F6, thirtyTwoN); //32f
+ 347   1              Melodyplay(pitch_Gb6, qtrN); //f#
+ 348   1              Melodyplay(pitch_Db6, thirtyTwoN); //32c#
+ 349   1              Melodyplay(pitch_Eb6, thirtyTwoN); //32d#
+ 350   1              Melodyplay(pitch_F6, thirtyTwoN); //32f
+ 351   1              Melodyplay(pitch_Gb6, qtrN); //f#
+ 352   1              Melodyplay(pitch_Db6, thirtyTwoN); //32c#
+ 353   1              Melodyplay(pitch_Eb6, thirtyTwoN); //32d#
+ 354   1              Melodyplay(pitch_G6, thirtyTwoN); //32g
+ 355   1              Melodyplay(pitch_Ab6, qtrN); //g#
+ 356   1              Melodyplay(pitch_Eb6, thirtyTwoN); //32d#
+ 357   1              Melodyplay(pitch_F6, thirtyTwoN); //32f
+ 358   1              Melodyplay(pitch_G6, thirtyTwoN); //32g
+ 359   1              Melodyplay(pitch_Ab6, sixteenN); //16g#.
+ 360   1              Melodyplay(pitch_Ab6, eighthN); //16g#.
+ 361   1              Melodyplay(pitch_Eb6, thirtyTwoN); //32d#
+ 362   1              Melodyplay(pitch_F6, thirtyTwoN); //32f
+ 363   1              Melodyplay(pitch_G6, thirtyTwoN); //32g
+ 364   1              Melodyplay(pitch_Ab6, sixteenN); //16g#.
+C51 COMPILER V9.01   MAIN                                                                  10/22/2019 01:54:27 PAGE 7   
 
- 366   1              Melodyplay(pitch_Eb5, qtrN);
- 367   1              Melodyplay(pitch_F5, qtrN);
- 368   1              Melodyplay(pitch_Gb5, qtrN);
- 369   1              Melodyplay(pitch_Ab5, qtrN);
- 370   1              Melodyplay(pitch_Bb5, qtrN);
- 371   1              Melodyplay(pitch_C6, qtrN);
- 372   1              Melodyplay(pitch_Db6, qtrN);
- 373   1              Melodyplay(pitch_P, wholeN);
- 374   1              Melodyplay(pitch_Db6, qtrN);
- 375   1              Melodyplay(pitch_C6, qtrN);
- 376   1              Melodyplay(pitch_Bb5, qtrN);
- 377   1              Melodyplay(pitch_Ab5, qtrN);
- 378   1              Melodyplay(pitch_Gb5, qtrN);
- 379   1              Melodyplay(pitch_F5, qtrN);
- 380   1              Melodyplay(pitch_Eb5, qtrN);
- 381   1              Melodyplay(pitch_Db5, qtrN);
- 382   1      }
- 383          
- 384          /*
- 385              AdamsFamily();
- 386                  delay_ms(1000);
- 387                  LooneyToons();
- 388                  delay_ms(1000);
- 389                  Flintstones();
- 390                  delay_ms(1000);
- 391                  PinkPanther();
- 392                  delay_ms(1000);
- 393                  BeethovenPlay();
- 394                  delay_ms(1000);
- 395                  Saregama();
- 396                  delay_ms(1000);
- 397          */
- 398          
- 399          /*
- 400          osc = 11.0592Mhz
- 401          Delay = 50ms
- 402          1000uS = 1mS
- 403          maximum of timer = 65mS (2^16=65536)
- 404          */
- 405          void InitTimer0(void)
- 406          {
- 407   1              TMOD &= 0xF0;    // Clear 4bit field for timer0
- 408   1              TMOD |= 0x01;    // Set timer0 in mode 1 (16 bit timer)
- 409   1              
- 410   1              TH0 = 0xD8;      // 16 bit timer, D8F0 mean 60000-10000=55536 (10000=1milisecond in 12MHz)
- 411   1              TL0 = 0xF0;
- 412   1      
- 413   1              TR0 = 1;         // Start Timer 0       
- 414   1              ET0 = 1;         // Enable Timer0 interrupts
- 415   1              EA  = 1;         // Global interrupt enable
- 416   1      
- 417   1      }
- 418          
- 419          void InitTimer1(void)
- 420          {
- 421   1              TMOD &= 0xF0;    // Clear 4bit field for timer0
- 422   1              TMOD |= 0x01;    // Set timer1 in mode 1 (16 bit timer)
- 423   1              
- 424   1              TH1 = 0xD8;      // 16 bit timer, D8F0 mean 60000-10000=55536 (10000=1milisecond in 12MHz)
- 425   1              TL1 = 0xF0;
- 426   1      
- 427   1              TR1 = 1;         // Start Timer 1
-C51 COMPILER V9.01   MAIN                                                                  10/20/2019 21:16:59 PAGE 8   
+ 365   1              Melodyplay(pitch_Ab6, eighthN); //16g#.
+ 366   1              Melodyplay(pitch_Db6, thirtyTwoN); //32c#
+ 367   1              Melodyplay(pitch_Eb6, thirtyTwoN); //32d#
+ 368   1              Melodyplay(pitch_F6, thirtyTwoN); //32f
+ 369   1              Melodyplay(pitch_Gb6, thirtyTwoN); //32f#
+ 370   1      }
+ 371          
+ 372          void PinkPanther(){//d=4,o=5,b=160
+ 373   1              MelodyTempo(160);
+ 374   1              Melodyplay(pitch_Eb5, eighthN); //8d#
+ 375   1              return;
+ 376   1      
+ 377   1              Melodyplay(pitch_E5, eighthN); //8e
+ 378   1              Melodyplay(pitch_P, halfN); //2p
+ 379   1              Melodyplay(pitch_Gb5, eighthN); //8f#
+ 380   1              Melodyplay(pitch_G5, eighthN); //8g
+ 381   1              Melodyplay(pitch_P, halfN); //2p
+ 382   1              Melodyplay(pitch_Eb5, eighthN); //8d#
+ 383   1              Melodyplay(pitch_E5, eighthN); //8e
+ 384   1              Melodyplay(pitch_P, sixteenN); //16p
+ 385   1              Melodyplay(pitch_Gb5, eighthN); //8f#
+ 386   1              Melodyplay(pitch_G5, eighthN); //8g
+ 387   1              Melodyplay(pitch_P, sixteenN); //16p
+ 388   1              Melodyplay(pitch_C6, eighthN); //8c6
+ 389   1              Melodyplay(pitch_B5, eighthN); //8b
+ 390   1              Melodyplay(pitch_P, sixteenN); //16p
+ 391   1              Melodyplay(pitch_Eb5, eighthN); //8d#
+ 392   1              Melodyplay(pitch_E5, eighthN); //8e
+ 393   1              Melodyplay(pitch_P, sixteenN); //16p
+ 394   1              Melodyplay(pitch_B5, eighthN); //8b
+ 395   1              Melodyplay(pitch_Bb5, halfN); //2a#
+ 396   1              Melodyplay(pitch_P, halfN); //2p
+ 397   1              Melodyplay(pitch_A5, sixteenN); //16a
+ 398   1              Melodyplay(pitch_G5, sixteenN); //16g
+ 399   1              Melodyplay(pitch_E5, sixteenN); //16e
+ 400   1              Melodyplay(pitch_D5, sixteenN); //16d
+ 401   1              Melodyplay(pitch_E5, halfN); //2e
+ 402   1      }
+ 403          
+ 404          void BeethovenPlay(){
+ 405   1              MelodyTempo(240);
+ 406   1              Melodyplay(pitch_E6, qtrN);
+ 407   1              Melodyplay(pitch_Eb6, qtrN);
+ 408   1              Melodyplay(pitch_E6, qtrN);
+ 409   1              Melodyplay(pitch_Eb6, qtrN);
+ 410   1              Melodyplay(pitch_E6, qtrN);
+ 411   1              Melodyplay(pitch_B5, qtrN);
+ 412   1              Melodyplay(pitch_D6, qtrN);
+ 413   1              Melodyplay(pitch_C6, qtrN);
+ 414   1              Melodyplay(pitch_A5, halfN);
+ 415   1              Melodyplay(pitch_C5, qtrN);
+ 416   1              Melodyplay(pitch_E6, qtrN);
+ 417   1              Melodyplay(pitch_A6, qtrN);
+ 418   1              Melodyplay(pitch_B6, halfN);
+ 419   1              
+ 420   1              Melodyplay(pitch_E5, qtrN);
+ 421   1              Melodyplay(pitch_A5, qtrN);
+ 422   1              Melodyplay(pitch_B5, qtrN);
+ 423   1              Melodyplay(pitch_C6, halfN);
+ 424   1      }
+ 425          
+ 426          void Saregama(){
+C51 COMPILER V9.01   MAIN                                                                  10/22/2019 01:54:27 PAGE 8   
 
- 428   1              ET1 = 1;         // Enable Timer1 interrupts
- 429   1              EA = 1;         // Global interrupt enable
- 430   1      
- 431   1      }
- 432          
- 433          void main(void)
- 434          {
- 435   1          unsigned char i = 0;
- 436   1      
- 437   1          InitTimer0();
- 438   1      
- 439   1              SEVEN_SEGMENT_SEG_PIN = 0x3f;           //Power on digital tube display 0
- 440   1              SEVEN_SEGMENT_COMMON_PIN = 0xff;                //1111 1111 turn on all common cathode pin (connected to collector pin 
+ 427   1              MelodyTempo(240);
+ 428   1              Melodyplay(pitch_Db5, qtrN);
+ 429   1              Melodyplay(pitch_Eb5, qtrN);
+ 430   1              Melodyplay(pitch_F5, qtrN);
+ 431   1              Melodyplay(pitch_Gb5, qtrN);
+ 432   1              Melodyplay(pitch_Ab5, qtrN);
+ 433   1              Melodyplay(pitch_Bb5, qtrN);
+ 434   1              Melodyplay(pitch_C6, qtrN);
+ 435   1              Melodyplay(pitch_Db6, qtrN);
+ 436   1              Melodyplay(pitch_P, wholeN);
+ 437   1              Melodyplay(pitch_Db6, qtrN);
+ 438   1              Melodyplay(pitch_C6, qtrN);
+ 439   1              Melodyplay(pitch_Bb5, qtrN);
+ 440   1              Melodyplay(pitch_Ab5, qtrN);
+ 441   1              Melodyplay(pitch_Gb5, qtrN);
+ 442   1              Melodyplay(pitch_F5, qtrN);
+ 443   1              Melodyplay(pitch_Eb5, qtrN);
+ 444   1              Melodyplay(pitch_Db5, qtrN);
+ 445   1      }
+ 446          
+ 447          /*
+ 448              AdamsFamily();
+ 449                  delay_ms(1000);
+ 450                  LooneyToons();
+ 451                  delay_ms(1000);
+ 452                  Flintstones();
+ 453                  delay_ms(1000);
+ 454                  PinkPanther();
+ 455                  delay_ms(1000);
+ 456                  BeethovenPlay();
+ 457                  delay_ms(1000);
+ 458                  Saregama();
+ 459                  delay_ms(1000);
+ 460          */
+ 461          
+ 462          void main(void)
+ 463          {
+ 464   1          unsigned char i = 0;
+ 465   1              unsigned char matrixLED = 0;
+ 466   1      
+ 467   1          InitTimer0();
+ 468   1      
+ 469   1              SEVEN_SEGMENT_SEG_PIN = 0x3f;           //Power on digital tube display 0
+ 470   1              SEVEN_SEGMENT_COMMON_PIN = 0xff;                //1111 1111 turn on all common cathode pin (connected to collector pin 
              -of NPN transistor to drag current from it to GND)
- 441   1      
- 442   1              while(1)
- 443   1              {                
- 444   2                      if(K5==0)               //K5
- 445   2                      {
- 446   3                              delay_ms(10);
- 447   3                              if(K5==0)
- 448   3                              {
- 449   4                                      SEVEN_SEGMENT_SEG_PIN =  Disp_Tab[i++];
- 450   4                                      if (i > 9) i = 0;
- 451   4                                      GPIO_LED = 0xef;         //1110 1111
- 452   4                              PinkPanther();
- 453   4                              }
- 454   3                      }               
- 455   2      
- 456   2                      if (flgLED == 1)
- 457   2                              GPIO_LED = 0xDF;
- 458   2                      else
- 459   2                              GPIO_LED = 0xBF;
- 460   2      
- 461   2                      SEVEN_SEGMENT_SEG_PIN =  segmentLEDRoll;
- 462   2              }                               
- 463   1      }
+ 471   1      
+ 472   1              while(1)
+ 473   1              {                
+ 474   2                      if(K5==0)               //K5
+ 475   2                      {
+ 476   3                              delay_ms(10);
+ 477   3                              if(K5==0)
+ 478   3                              {
+ 479   4                                      SEVEN_SEGMENT_SEG_PIN =  Disp_Tab[i++];
+ 480   4                                      if (i > 9) i = 0;
+ 481   4                                      GPIO_LED = 0xef;         //1110 1111
+ 482   4      
+ 483   4                                      iNotes = 0;
+ 484   4                                      MelodyTempo(160);
+ 485   4                              }
+ 486   3                      }               
+ 487   2      
+C51 COMPILER V9.01   MAIN                                                                  10/22/2019 01:54:27 PAGE 9   
+
+ 488   2                      if (iNotes == 0) {
+ 489   3                              Melodyplay(pitch_Eb5, eighthN); //8d#
+ 490   3                      }
+ 491   2                      else if (iNotes == 1) {
+ 492   3                              Melodyplay(pitch_E5, eighthN); //8e             
+ 493   3                      }
+ 494   2                      else if (iNotes == 2) {
+ 495   3                              Melodyplay(pitch_P, halfN); //2p
+ 496   3                      }
+ 497   2                      else if (iNotes == 3) {
+ 498   3                              Melodyplay(pitch_Gb5, eighthN); //8f#
+ 499   3                      }
+ 500   2                      else if (iNotes == 4) {
+ 501   3                              Melodyplay(pitch_G5, eighthN); //8g
+ 502   3                      }
+ 503   2      
+ 504   2                      if (flgLED == 1)
+ 505   2                              matrixLED = 0xDF;
+ 506   2                      else
+ 507   2                              matrixLED = 0xBF;
+ 508   2      
+ 509   2                      if (flgLEDForTimer1 == 1)
+ 510   2                              matrixLED &= 0xF7; //1111 0111
+ 511   2                      else
+ 512   2                              matrixLED &= 0xFB; //1111 1011
+ 513   2      
+ 514   2                      GPIO_LED = matrixLED;
+ 515   2      
+ 516   2                      SEVEN_SEGMENT_SEG_PIN =  segmentLEDRoll;
+ 517   2              }                               
+ 518   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =   2401    ----
+   CODE SIZE        =   2281    ----
    CONSTANT SIZE    =     11    ----
    XDATA SIZE       =   ----    ----
    PDATA SIZE       =   ----    ----
-   DATA SIZE        =     45       5
+   DATA SIZE        =     46       6
    IDATA SIZE       =   ----    ----
-   BIT SIZE         =      1    ----
+   BIT SIZE         =      4    ----
 END OF MODULE INFORMATION.
 
 
