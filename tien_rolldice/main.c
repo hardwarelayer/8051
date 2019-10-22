@@ -9,6 +9,8 @@
 bit bTimer1IsRunning = 0;
 bit bMelodyIsPlaying = 0;
 
+unsigned char matrixLED = 1;
+unsigned char iSongCount = 0;
 //4x7 segment LED control
 //Common cathode(?) module
 //common pin LED1-4 connect to P1: P10-P13
@@ -89,8 +91,6 @@ void Timer2_ISR(void) interrupt 5 {
 
 unsigned int iTimer1RunMS = 0;
 
-unsigned char iNotes = 10;
-bit flgLEDForTimer1 = 0;
 //https://what-when-how.com/8051-microcontroller/programming-timers-0-and-1-in-8051-c/
 //http://www.keil.com/support/man/docs/c51/c51_le_interruptfuncs.htm
 //3	TIMER/COUNTER 1	001Bh
@@ -112,27 +112,25 @@ void Timer1_ISR(void) interrupt 3 {
 		ET1 = 0; // Disable Timer1 interrupts
 
 		bTimer1IsRunning = 0;
-		flgLEDForTimer1 = 0;
-
-		iNotes++;
-		EndNote();
 
 	}
 }
 
 short iTickCount = 0;
-bit flgLED = 1;
 unsigned char segmentLEDRoll = 0x01;
 
 //1	TIMER/COUNTER 0	000Bh
 void Timer0_ISR (void) interrupt 1   // It is called after every 250usec
 {
-	TH0 = 0xD8;      // reload it with the same value as inittimer0
-	TL0 = 0xF0;      //TH&TL is 16 bit
+	TH0 = 0xEA;      // reload it with the same value as inittimer0
+	TL0 = 0x60;      //TH&TL is 16 bit
 
 	if (++iTickCount > 25) {
 		iTickCount = 0;
-		flgLED = !flgLED; //invert it
+		if (matrixLED < 128)
+			matrixLED = matrixLED << 1;
+		else
+			matrixLED = 1;
 
 		if (segmentLEDRoll >= 0x20) { //0010 0000
 			segmentLEDRoll = 1;
@@ -175,7 +173,6 @@ void EndNote(void){
 	TR2 = 0; //disable timer 2
 	TF2 = 0; //reset the overflow flag
 	MelodyPin = 1;
-	bMelodyIsPlaying = 0;
 }
 
 void delay_ms(unsigned int ms){
@@ -184,20 +181,14 @@ void delay_ms(unsigned int ms){
 }
 
 void Melodyplay(const int Pitch, unsigned int interval) {
-	if (bMelodyIsPlaying == 0) {
-		bMelodyIsPlaying = 1;
-	}
-	else {
-		return;
-	}
 
 	if(Pitch!=0)
 		PlayNote(Pitch >> 8, Pitch);
 
-	iTimer1RunMS = interval;
-	InitTimer1();
-	//delay_ms(interval);
-	//EndNote();
+	//iTimer1RunMS = interval;
+	//InitTimer1();
+	delay_ms(interval);
+	EndNote();
 }
 
 /*
@@ -210,8 +201,8 @@ void InitTimer0(void)
 {
 	TMOD = 0x01;    // Set timer0 in mode 1 (16 bit timer)
 	
-	TH0 = 0xD8;      // 16 bit timer, D8F0 mean 60000-10000=55536 (10000=1milisecond in 12MHz)
-	TL0 = 0xF0;
+	TH0 = 0xEA;      // 16 bit timer, D8F0 mean 65536-5536=60000 (10000=1milisecond in 12MHz)
+	TL0 = 0x60;
 
 	TR0 = 1;         // Start Timer 0	
 	ET0 = 1;         // Enable Timer0 interrupts
@@ -228,7 +219,6 @@ void InitTimer1(void)
 	else {
 		return;
 	}
-	flgLEDForTimer1 = 1;
 
 	TMOD &= 0x0F;    // Clear 4bit high for timer1, keep 4 bit low for timer 0 (or timer 0 will be reset with unknown data)
 	TMOD |= 0x10;    // Set timer1 in mode 1 (16 bit timer)
@@ -345,35 +335,11 @@ void AdamsFamily(){ //d=4, o=6, b=50
 	Melodyplay(pitch_Eb6, sixteenN); //16d#
 	Melodyplay(pitch_F6, thirtyTwoN); //32f
 	Melodyplay(pitch_Gb6, qtrN); //f#
-	Melodyplay(pitch_Db6, thirtyTwoN); //32c#
-	Melodyplay(pitch_Eb6, thirtyTwoN); //32d#
-	Melodyplay(pitch_F6, thirtyTwoN); //32f
-	Melodyplay(pitch_Gb6, qtrN); //f#
-	Melodyplay(pitch_Db6, thirtyTwoN); //32c#
-	Melodyplay(pitch_Eb6, thirtyTwoN); //32d#
-	Melodyplay(pitch_G6, thirtyTwoN); //32g
-	Melodyplay(pitch_Ab6, qtrN); //g#
-	Melodyplay(pitch_Eb6, thirtyTwoN); //32d#
-	Melodyplay(pitch_F6, thirtyTwoN); //32f
-	Melodyplay(pitch_G6, thirtyTwoN); //32g
-	Melodyplay(pitch_Ab6, sixteenN); //16g#.
-	Melodyplay(pitch_Ab6, eighthN); //16g#.
-	Melodyplay(pitch_Eb6, thirtyTwoN); //32d#
-	Melodyplay(pitch_F6, thirtyTwoN); //32f
-	Melodyplay(pitch_G6, thirtyTwoN); //32g
-	Melodyplay(pitch_Ab6, sixteenN); //16g#.
-	Melodyplay(pitch_Ab6, eighthN); //16g#.
-	Melodyplay(pitch_Db6, thirtyTwoN); //32c#
-	Melodyplay(pitch_Eb6, thirtyTwoN); //32d#
-	Melodyplay(pitch_F6, thirtyTwoN); //32f
-	Melodyplay(pitch_Gb6, thirtyTwoN); //32f#
 }
 
 void PinkPanther(){//d=4,o=5,b=160
 	MelodyTempo(160);
 	Melodyplay(pitch_Eb5, eighthN); //8d#
-	return;
-
 	Melodyplay(pitch_E5, eighthN); //8e
 	Melodyplay(pitch_P, halfN); //2p
 	Melodyplay(pitch_Gb5, eighthN); //8f#
@@ -410,6 +376,7 @@ void BeethovenPlay(){
 	Melodyplay(pitch_E6, qtrN);
 	Melodyplay(pitch_B5, qtrN);
 	Melodyplay(pitch_D6, qtrN);
+
 	Melodyplay(pitch_C6, qtrN);
 	Melodyplay(pitch_A5, halfN);
 	Melodyplay(pitch_C5, qtrN);
@@ -462,7 +429,6 @@ void Saregama(){
 void main(void)
 {
     unsigned char i = 0;
-	unsigned char matrixLED = 0;
 
     InitTimer0();
 
@@ -480,38 +446,37 @@ void main(void)
 				if (i > 9) i = 0;
 				GPIO_LED = 0xef;	 //1110 1111
 
-				iNotes = 0;
-				MelodyTempo(160);
+				bMelodyIsPlaying = 1;
+
+				switch (iSongCount) {
+				case 0:
+				    AdamsFamily();
+					break;
+				case 1:
+					LooneyToons();
+					break;
+				case 2:
+					Flintstones();
+					break;
+				case 3:
+					PinkPanther();
+					break;
+				case 4:
+					BeethovenPlay();
+					break;
+				case 5:
+					Saregama();
+					break;
+				}
+				bMelodyIsPlaying = 0;
+				if (iSongCount > 5)
+					iSongCount = 0;
+				else
+					iSongCount++;
 			}
 		}		
 
-		if (iNotes == 0) {
-			Melodyplay(pitch_Eb5, eighthN); //8d#
-		}
-		else if (iNotes == 1) {
-			Melodyplay(pitch_E5, eighthN); //8e		
-		}
-		else if (iNotes == 2) {
-			Melodyplay(pitch_P, halfN); //2p
-		}
-		else if (iNotes == 3) {
-			Melodyplay(pitch_Gb5, eighthN); //8f#
-		}
-		else if (iNotes == 4) {
-			Melodyplay(pitch_G5, eighthN); //8g
-		}
-
-		if (flgLED == 1)
-			matrixLED = 0xDF;
-		else
-			matrixLED = 0xBF;
-
-		if (flgLEDForTimer1 == 1)
-			matrixLED &= 0xF7; //1111 0111
-		else
-			matrixLED &= 0xFB; //1111 1011
-
-		GPIO_LED = matrixLED;
+		GPIO_LED = ~matrixLED;
 
 		SEVEN_SEGMENT_SEG_PIN =  segmentLEDRoll;
 	}				
