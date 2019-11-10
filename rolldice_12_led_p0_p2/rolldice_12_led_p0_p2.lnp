@@ -1,0 +1,4 @@
+"main.obj",
+"delay.obj" 
+TO "rolldice_12_led_p0_p2" 
+RAMSIZE(256) 
