@@ -1,0 +1,31 @@
+;to use these pseudo-random number sequence generators, memory must be
+;set aside to hold the last random number, which is used to generate the
+;next one so that a randomly distributed (but predictable) sequence of
+;number is generated.
+;Paul Stoffregen
+NAME  TIENTN
+
+?PR?_MyRand?TIENTN SEGMENT CODE 
+ 
+  PUBLIC  _MyRand
+
+  RSEG  ?PR?_MyRand?TIENTN
+
+rand8reg EQU 0x20  	;one byte
+
+;generates an 8 bit pseudo-random number which is returned in Acc.
+;one byte of memory must be available for rand8reg
+
+_MyRand:
+  MOV  a, rand8reg
+  JNZ  rand8b
+  CPL  a
+  MOV  rand8reg, a
+rand8b:  anl  a, #10111000b
+  MOV  c, p
+  MOV  a, rand8reg
+  RLC  a
+  MOV  rand8reg, a
+  RET
+
+  END

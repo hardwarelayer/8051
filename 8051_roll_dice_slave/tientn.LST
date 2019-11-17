@@ -1,0 +1,60 @@
+A51 MACRO ASSEMBLER  TIENTN                                                               11/17/2019 22:17:01 PAGE     1
+
+
+MACRO ASSEMBLER A51 V8.02
+OBJECT MODULE PLACED IN tientn.OBJ
+ASSEMBLER INVOKED BY: C:\Keil\C51\BIN\A51.EXE tientn.SRC SET(SMALL) DEBUG EP
+
+LOC  OBJ            LINE     SOURCE
+
+                       1     ;to use these pseudo-random number sequence generators, memory must be
+                       2     ;set aside to hold the last random number, which is used to generate the
+                       3     ;next one so that a randomly distributed (but predictable) sequence of
+                       4     ;number is generated.
+                       5     ;Paul Stoffregen
+                       6     NAME  TIENTN
+                       7     
+                       8     ?PR?_MyRand?TIENTN SEGMENT CODE 
+                       9      
+                      10       PUBLIC  _MyRand
+                      11     
+----                  12       RSEG  ?PR?_MyRand?TIENTN
+                      13     
+  0020                14     rand8reg EQU 0x20       ;one byte
+                      15     
+                      16     ;generates an 8 bit pseudo-random number which is returned in Acc.
+                      17     ;one byte of memory must be available for rand8reg
+                      18     
+0000                  19     _MyRand:
+0000 E520             20       MOV  a, rand8reg
+0002 7003             21       JNZ  rand8b
+0004 F4               22       CPL  a
+0005 F520             23       MOV  rand8reg, a
+0007 54B8             24     rand8b:  anl  a, #10111000b
+0009 A2D0             25       MOV  c, p
+000B E520             26       MOV  a, rand8reg
+000D 33               27       RLC  a
+000E F520             28       MOV  rand8reg, a
+0010 22               29       RET
+                      30     
+                      31       END
+A51 MACRO ASSEMBLER  TIENTN                                                               11/17/2019 22:17:01 PAGE     2
+
+SYMBOL TABLE LISTING
+------ ----- -------
+
+
+N A M E             T Y P E  V A L U E   ATTRIBUTES
+
+?PR?_MYRAND?TIENTN  C SEG    0011H       REL=UNIT
+P. . . . . . . . .  B ADDR   00D0H.0 A   
+RAND8B . . . . . .  C ADDR   0007H   R   SEG=?PR?_MYRAND?TIENTN
+RAND8REG . . . . .  N NUMB   0020H   A   
+TIENTN . . . . . .  N NUMB   -----       
+_MYRAND. . . . . .  C ADDR   0000H   R   SEG=?PR?_MYRAND?TIENTN
+
+
+REGISTER BANK(S) USED: 0 
+
+
+ASSEMBLY COMPLETE.  0 WARNING(S), 0 ERROR(S)

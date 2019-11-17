@@ -1,0 +1,423 @@
+C51 COMPILER V9.01   MAIN                                                                  11/17/2019 22:17:01 PAGE 1   
+
+
+C51 COMPILER V9.01, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN main.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE main.c BROWSE DEBUG OBJECTEXTEND TABS(2)
+
+line level    source
+
+   1          /*
+   2          By TienTN 2019
+   3          */
+   4          #include <reg51.h>
+   5          #include <stdlib.h>
+   6          
+   7          //Assembly code in delay.src
+   8          void Delay10MC(unsigned char);
+   9          //Assembly code in tientn.src
+  10          //extern unsigned char MyRand(void);
+  11          
+  12          unsigned char iLEDCounter = 1;
+  13          unsigned char iLoop = 0;
+  14          unsigned char iSevSegLoop = 1;
+  15          unsigned char iRollResult = 4;
+  16          unsigned char iSevSeg1 = 0;
+  17          unsigned char iSevSeg2 = 0;
+  18          unsigned char iRandVal = 12;
+  19          
+  20          sbit LED1=P0^0;
+  21          sbit LED2=P0^1;
+  22          sbit LED3=P0^2;
+  23          sbit LED4=P0^3;
+  24          sbit LED5=P0^4;
+  25          sbit LED6=P0^5;
+  26          sbit LED7=P0^6;
+  27          sbit LED8=P0^7;
+  28          
+  29          sbit LED9=P2^7;
+  30          sbit LED10=P2^6;
+  31          sbit LED11=P2^5;
+  32          sbit LED12=P2^4;
+  33          
+  34          sbit SEVSEG_COM1=P2^2;
+  35          sbit SEVSEG_COM2=P2^3;
+  36          
+  37          sbit SEVSEG_A=P3^1;
+  38          sbit SEVSEG_B=P3^2;
+  39          sbit SEVSEG_C=P3^3;
+  40          sbit SEVSEG_D=P3^4;
+  41          sbit SEVSEG_E=P3^5;
+  42          sbit SEVSEG_F=P3^6;
+  43          sbit SEVSEG_G=P3^7;
+  44          
+  45          void delay_ms(unsigned short ms){
+  46   1        for(;ms>0;ms--)
+  47   1          Delay10MC(100);
+  48   1      }
+  49          
+  50          void Timer0_ISR() interrupt 1 /* Timer0 interrupt service routine (ISR) */
+  51          {
+  52   1        if (iRandVal > 1)
+  53   1          iRandVal--;
+  54   1        else
+  55   1          iRandVal = 12;
+C51 COMPILER V9.01   MAIN                                                                  11/17/2019 22:17:01 PAGE 2   
+
+  56   1        TH0 = 0x4C; /* 50ms timer value */
+  57   1        TL0 = 0x00; //clear to restart
+  58   1      }
+  59          
+  60          /*
+  61          As Xtal is 11.0592 MHz we have machine cycle of 1.085uSec. 
+  62          Hence, required count to generate a delay of 50mSec. is,
+  63               Count =(50×10^(-3)) / (1.085×10^(-6) ) ˜ 46080 
+  64          And mode1 has max count is 2^16 (0 - 65535) and it increment from 0 – 65535 
+  65          so we need to load value which is 46080 less from its max. count i.e. 65535. 
+  66          Hence value need to be load is,
+  67               Value=(65535-Count)+1 =19456= (4C00)Hex
+  68          So we need to load 4C00 Hex value in higher byte and lower byte as,
+  69          TH0 = 0x4C & TL0 = 0x00
+  70          */
+  71          void initTimer0()
+  72          {
+  73   1        // Initialize Timer 2 for RANDOM assist
+  74   1        //Mode2 (8-bit auto-reload timer mode)
+  75   1      
+  76   1        TMOD=0x01;  //Timer0, mode 1
+  77   1        TH0=0X4C;
+  78   1        TL0=0x00;
+  79   1        TR0=1;       //Start timer 0
+  80   1        
+  81   1        EA  = 1;          /* Enable global interrupt */
+  82   1        ET0 = 1;          /* Enable timer0 interrupt */
+  83   1      }
+  84          
+  85          void initTimer1()   // Initialize Timer 1 for serial communication
+  86          {
+  87   1        TMOD=0x20;  //Timer1, mode 2, baud rate 9600 bps (8-bit reload mode for baudrate generation)
+  88   1        TH1=0XFD;    //Baud rate 9600 bps
+  89   1        SCON=0x50;    //Serial Mode 1, 8-Data Bit, REN Enabled   
+  90   1        TR1=1;       //Start timer 1
+  91   1      }
+  92          
+  93          unsigned char receive()    //Function to receive serial data
+  94          {
+  95   1        unsigned char value;
+  96   1        while(RI==0);     //wait till RI flag is set
+  97   1        value=SBUF;   
+  98   1        //P1=value;
+  99   1        RI=0;          //Clear the RI flag
+ 100   1        return value;
+ 101   1      }
+ 102          
+ 103          void setSegmentValue(unsigned char iSeg, bit value) {
+ 104   1        switch (iSeg) {
+ 105   2        case 1:
+ 106   2          SEVSEG_A = value;
+ 107   2          break;
+ 108   2        case 2:
+ 109   2          SEVSEG_B = value;
+ 110   2          break;
+ 111   2        case 3:
+ 112   2          SEVSEG_C = value;
+ 113   2          break;
+ 114   2        case 4:
+ 115   2          SEVSEG_D = value;
+ 116   2          break;
+ 117   2        case 5:
+C51 COMPILER V9.01   MAIN                                                                  11/17/2019 22:17:01 PAGE 3   
+
+ 118   2          SEVSEG_E = value;
+ 119   2          break;
+ 120   2        case 6:
+ 121   2          SEVSEG_F = value;
+ 122   2          break;
+ 123   2        case 7:
+ 124   2          SEVSEG_G = value;
+ 125   2          break;
+ 126   2        }
+ 127   1      }
+ 128          
+ 129          void setSevLEDNumber(unsigned char iNum) {
+ 130   1        switch (iNum) {
+ 131   2        case 0:
+ 132   2          setSegmentValue(1, 0);
+ 133   2          setSegmentValue(2, 0);
+ 134   2          setSegmentValue(3, 0);
+ 135   2          setSegmentValue(4, 0);
+ 136   2          setSegmentValue(5, 0);
+ 137   2          setSegmentValue(6, 0);
+ 138   2          setSegmentValue(7, 1); //off
+ 139   2          break;
+ 140   2        case 1:
+ 141   2          setSegmentValue(1, 1);
+ 142   2          setSegmentValue(2, 0);
+ 143   2          setSegmentValue(3, 0);
+ 144   2          setSegmentValue(4, 1);
+ 145   2          setSegmentValue(5, 1);
+ 146   2          setSegmentValue(6, 1);
+ 147   2          setSegmentValue(7, 1); //off
+ 148   2          break;
+ 149   2        case 2:
+ 150   2          setSegmentValue(1, 0);
+ 151   2          setSegmentValue(2, 0);
+ 152   2          setSegmentValue(3, 1);
+ 153   2          setSegmentValue(4, 0);
+ 154   2          setSegmentValue(5, 0);
+ 155   2          setSegmentValue(6, 1);
+ 156   2          setSegmentValue(7, 0);
+ 157   2          break;
+ 158   2        case 3:
+ 159   2          setSegmentValue(1, 0);
+ 160   2          setSegmentValue(2, 0);
+ 161   2          setSegmentValue(3, 0);
+ 162   2          setSegmentValue(4, 0);
+ 163   2          setSegmentValue(5, 1);
+ 164   2          setSegmentValue(6, 1);
+ 165   2          setSegmentValue(7, 0);
+ 166   2          break;
+ 167   2        case 4:
+ 168   2          setSegmentValue(1, 1);
+ 169   2          setSegmentValue(2, 0);
+ 170   2          setSegmentValue(3, 0);
+ 171   2          setSegmentValue(4, 1);
+ 172   2          setSegmentValue(5, 1);
+ 173   2          setSegmentValue(6, 0);
+ 174   2          setSegmentValue(7, 0);
+ 175   2          break;
+ 176   2        case 5:
+ 177   2          setSegmentValue(1, 0);
+ 178   2          setSegmentValue(2, 1);
+ 179   2          setSegmentValue(3, 0);
+C51 COMPILER V9.01   MAIN                                                                  11/17/2019 22:17:01 PAGE 4   
+
+ 180   2          setSegmentValue(4, 0);
+ 181   2          setSegmentValue(5, 1);
+ 182   2          setSegmentValue(6, 0);
+ 183   2          setSegmentValue(7, 0);
+ 184   2          break;
+ 185   2        case 6:
+ 186   2          setSegmentValue(1, 0);
+ 187   2          setSegmentValue(2, 1);
+ 188   2          setSegmentValue(3, 0);
+ 189   2          setSegmentValue(4, 0);
+ 190   2          setSegmentValue(5, 0);
+ 191   2          setSegmentValue(6, 0);
+ 192   2          setSegmentValue(7, 0);
+ 193   2          break;
+ 194   2        case 7:
+ 195   2          setSegmentValue(1, 0);
+ 196   2          setSegmentValue(2, 0);
+ 197   2          setSegmentValue(3, 0);
+ 198   2          setSegmentValue(4, 1);
+ 199   2          setSegmentValue(5, 1);
+ 200   2          setSegmentValue(6, 1);
+ 201   2          setSegmentValue(7, 1); //off
+ 202   2          break;
+ 203   2        case 8:
+ 204   2          setSegmentValue(1, 0);
+ 205   2          setSegmentValue(2, 0);
+ 206   2          setSegmentValue(3, 0);
+ 207   2          setSegmentValue(4, 0);
+ 208   2          setSegmentValue(5, 0);
+ 209   2          setSegmentValue(6, 0);
+ 210   2          setSegmentValue(7, 0);
+ 211   2          break;
+ 212   2        case 9:
+ 213   2          setSegmentValue(1, 0);
+ 214   2          setSegmentValue(2, 0);
+ 215   2          setSegmentValue(3, 0);
+ 216   2          setSegmentValue(4, 0);
+ 217   2          setSegmentValue(5, 1);
+ 218   2          setSegmentValue(6, 0);
+ 219   2          setSegmentValue(7, 0);
+ 220   2          break;
+ 221   2        }
+ 222   1      }
+ 223          
+ 224          void setPinValue(unsigned char iPin, bit value) {
+ 225   1        switch (iPin) {
+ 226   2        case 1:
+ 227   2          LED1 = value;
+ 228   2          break;
+ 229   2        case 2:
+ 230   2          LED2 = value;
+ 231   2          break;
+ 232   2        case 3:
+ 233   2          LED3 = value;
+ 234   2          break;
+ 235   2        case 4:
+ 236   2          LED4 = value;
+ 237   2          break;
+ 238   2        case 5:
+ 239   2          LED5 = value;
+ 240   2          break;
+ 241   2        case 6:
+C51 COMPILER V9.01   MAIN                                                                  11/17/2019 22:17:01 PAGE 5   
+
+ 242   2          LED6 = value;
+ 243   2          break;
+ 244   2        case 7:
+ 245   2          LED7 = value;
+ 246   2          break;
+ 247   2        case 8:
+ 248   2          LED8 = value;
+ 249   2          break;
+ 250   2        case 9:
+ 251   2          LED9 = value;
+ 252   2          break;
+ 253   2        case 10:
+ 254   2          LED10 = value;
+ 255   2          break;
+ 256   2        case 11:
+ 257   2          LED11 = value;
+ 258   2          break;
+ 259   2        case 12:  
+ 260   2          LED12 = value;
+ 261   2          break;
+ 262   2        default:
+ 263   2          break;
+ 264   2        }
+ 265   1      }
+ 266          
+ 267          void main()            
+ 268          {
+ 269   1        initTimer0();
+ 270   1      
+ 271   1        while(1)
+ 272   1        {
+ 273   2          //on 2 7SegLED
+ 274   2          SEVSEG_COM1 = 1;
+ 275   2          SEVSEG_COM2 = 1;
+ 276   2          
+ 277   2          for (iLoop = 0; iLoop < 3; iLoop++) {
+ 278   3            for (iLEDCounter = 1; iLEDCounter <= 12; iLEDCounter++) {
+ 279   4              //turn off previous LED
+ 280   4              if (iLEDCounter > 1) {
+ 281   5                setPinValue(iLEDCounter-1, 1);
+ 282   5              }
+ 283   4              else {
+ 284   5                setPinValue(12, 1);
+ 285   5              }
+ 286   4              
+ 287   4              //on current
+ 288   4              setPinValue(iLEDCounter, 0);
+ 289   4              
+ 290   4              if (iSevSegLoop > 6) {
+ 291   5                iSevSegLoop = 1;
+ 292   5              }
+ 293   4              else {
+ 294   5                iSevSegLoop++;
+ 295   5              }
+ 296   4              //turn off previous SEG
+ 297   4              if (iSevSegLoop > 1) {
+ 298   5                setSegmentValue(iSevSegLoop-1, 1);
+ 299   5              }
+ 300   4              else {
+ 301   5                setSegmentValue(6, 1);
+ 302   5              }
+ 303   4              //on current
+C51 COMPILER V9.01   MAIN                                                                  11/17/2019 22:17:01 PAGE 6   
+
+ 304   4              setSegmentValue(iSevSegLoop, 0);
+ 305   4              //off G always
+ 306   4              setSegmentValue(7, 1);
+ 307   4              delay_ms(100);
+ 308   4            }
+ 309   3          }
+ 310   2      
+ 311   2          //end of roll
+ 312   2          //display value
+ 313   2          for (iLEDCounter = 1; iLEDCounter <= iRollResult; iLEDCounter++) {
+ 314   3            //turn off previous LED
+ 315   3            if (iLEDCounter > 1) {
+ 316   4              setPinValue(iLEDCounter-1, 1);
+ 317   4            }
+ 318   3            else {
+ 319   4              setPinValue(12, 1);
+ 320   4            }
+ 321   3            
+ 322   3            //on current
+ 323   3            setPinValue(iLEDCounter, 0);
+ 324   3            
+ 325   3            if (iSevSegLoop > 6) {
+ 326   4              iSevSegLoop = 1;
+ 327   4            }
+ 328   3            else {
+ 329   4              iSevSegLoop++;
+ 330   4            }
+ 331   3            //turn off previous SEG
+ 332   3            if (iSevSegLoop > 1) {
+ 333   4              setSegmentValue(iSevSegLoop-1, 1);
+ 334   4            }
+ 335   3            else {
+ 336   4              setSegmentValue(6, 1);
+ 337   4            }
+ 338   3            //on current
+ 339   3            setSegmentValue(iSevSegLoop, 0);
+ 340   3            //off G always
+ 341   3            setSegmentValue(7, 1);
+ 342   3            delay_ms(120);
+ 343   3          }
+ 344   2          //show on 7segment, too
+ 345   2          if (iRollResult < 10) {
+ 346   3            iSevSeg1 = 0;
+ 347   3          }
+ 348   2          else {
+ 349   3            iSevSeg1 = (iRollResult/10)%10;
+ 350   3            if (iSevSeg1 > 9) {
+ 351   4              iSevSeg1 = 1;
+ 352   4            }
+ 353   3          }
+ 354   2          iSevSeg2 = iRollResult%10;
+ 355   2          for (iLEDCounter = 0; iLEDCounter < 100; iLEDCounter++) {
+ 356   3            SEVSEG_COM2 = 0;
+ 357   3            if (iSevSeg1 > 0) {
+ 358   4              SEVSEG_COM1 = 1;
+ 359   4              setSevLEDNumber(iSevSeg1);
+ 360   4              delay_ms(10);
+ 361   4            }
+ 362   3            else {
+ 363   4              //don't use it
+ 364   4              SEVSEG_COM1 = 0;
+ 365   4            }
+C51 COMPILER V9.01   MAIN                                                                  11/17/2019 22:17:01 PAGE 7   
+
+ 366   3      
+ 367   3            SEVSEG_COM1 = 0;
+ 368   3            SEVSEG_COM2 = 1;
+ 369   3            setSevLEDNumber(iSevSeg2);
+ 370   3            delay_ms(10);
+ 371   3          }
+ 372   2          delay_ms(10000);
+ 373   2          //off all sevsegs
+ 374   2          SEVSEG_COM1 = 0;
+ 375   2          SEVSEG_COM2 = 0;
+ 376   2      
+ 377   2          //turn off all
+ 378   2          for (iLEDCounter = 1; iLEDCounter <= 12; iLEDCounter++)
+ 379   2            setPinValue(iLEDCounter, 1);
+ 380   2      
+ 381   2          initTimer1(); //timer runs just once each time
+ 382   2          receive(); //block until interrupt found
+ 383   2          iRollResult = iRandVal;
+ 384   2      
+ 385   2        }
+ 386   1      }
+ 387          
+ 388          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1059    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      7       2
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----       2
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

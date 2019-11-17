@@ -1,0 +1,19 @@
+<html>
+<body>
+<pre>
+<h1>µVision Build Log</h1>
+<h2>Project:</h2>
+Z:\Keil_C_Project\8051_roll_dice_slave\8051_roll_dice_slave.uvproj
+Project File Date:  11/17/2019
+
+<h2>Output:</h2>
+Build target 'Target 1'
+compiling main.c...
+assembling delay.SRC...
+assembling tientn.SRC...
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_MYRAND?TIENTN
+Program Size: data=18.1 xdata=0 code=1255
+creating hex file from "8051_roll_dice_slave"...
+"8051_roll_dice_slave" - 0 Error(s), 1 Warning(s).

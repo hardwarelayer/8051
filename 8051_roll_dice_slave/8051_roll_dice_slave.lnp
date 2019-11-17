@@ -1,0 +1,5 @@
+"main.obj",
+"delay.obj",
+"tientn.obj" 
+TO "8051_roll_dice_slave" 
+RAMSIZE(256) 
